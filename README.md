@@ -1,7 +1,13 @@
 # 42minutes
 
-42 minutes is a collection of tools to manage your tv-series collection.  
-It consists of a cliemt, server, and user interface.
+42minutes is a collection of tools to manage your tv-series collection.  
+It consists of a client, server, and user interface.
+
+In addition to these there is a single user daemon that wraps server and
+client into a single binary, requires no authentication, and meant to be
+used by a single user.
+
+__The standalone daemon is the first thing 42minutes will focus on.__
 
 ## client
 
