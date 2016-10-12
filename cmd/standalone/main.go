@@ -15,12 +15,13 @@ type daemon struct {
 	finder     minutes.Finder
 	downloader minutes.Downloader
 	differ     minutes.Differ
+	matcher    minutes.Matcher
 }
 
 // HandleWatcherNotification handles watcher notifications
-func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, file string) {
+func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, filename string) {
 	// find episode, season, and show
-	epis, _ := d.glibrary.QueryEpisodesByFile(file)
+	epis, _ := d.matcher.Match(filename)
 	seas, _ := d.glibrary.GetSeason(epis[0].SeasonID)
 	show, _ := d.glibrary.GetShow(epis[0].ShowID)
 	// make sure they are in the user's library
@@ -70,6 +71,9 @@ func main() {
 	// simple differ
 	diff := &minutes.SimpleDiff{}
 
+	// simple matcher
+	mtch, _ := minutes.NewSimpleMatch(glib)
+
 	// standalone daemon
 	daem := &daemon{
 		glibrary:   glib,
@@ -77,6 +81,7 @@ func main() {
 		finder:     fndr,
 		downloader: dwnl,
 		differ:     diff,
+		matcher:    mtch,
 	}
 
 	// create a new file watcher

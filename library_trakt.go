@@ -71,10 +71,3 @@ func (l *TraktLibrary) GetEpisodeByNumber(showID string, seasonNumber, episodeNu
 func (l *TraktLibrary) QueryShowsByTitle(title string) ([]*Show, error) {
 	return []*Show{}, nil
 }
-
-// QueryEpisodesByFile returns all episodes that match a filename or full
-// path, ordered by their probability
-// or errors with ErrInternalServer
-func (l *TraktLibrary) QueryEpisodesByFile(filename string) ([]*Episode, error) {
-	return []*Episode{}, nil
-}

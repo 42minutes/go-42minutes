@@ -78,10 +78,3 @@ func (l *UserLibrary) GetEpisodeByNumber(showID string, seasonNumber, episodeNum
 func (l *UserLibrary) QueryShowsByTitle(title string) ([]*Show, error) {
 	return []*Show{}, nil
 }
-
-// QueryEpisodesByFile returns all episodes that match a filename or full
-// path, ordered by their probability
-// or errors with ErrInternalServer
-func (l *UserLibrary) QueryEpisodesByFile(filename string) ([]*Episode, error) {
-	return []*Episode{}, nil
-}
