@@ -60,8 +60,4 @@ type Library interface {
 	// by their probability
 	// or errors with ErrInternalServer
 	QueryShowsByTitle(title string) ([]*Show, error)
-	// QueryEpisodesByFile returns all episodes that match a filename or full
-	// path, ordered by their probability
-	// or errors with ErrInternalServer
-	QueryEpisodesByFile(filename string) ([]*Episode, error)
 }
