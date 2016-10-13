@@ -46,12 +46,21 @@ type Library interface {
 	// GetSeason returns a Season
 	// or errors with ErrNotFound, or ErrInternalServer
 	GetSeason(seasonID string) (*Season, error)
+	// GetSeasonsByShow returns all Seasons for a show
+	// or errors with ErrNotFound, or ErrInternalServer
+	GetSeasonsByShow(showID string) ([]*Season, error)
 	// GetSeasonByNumber returns a Season given a Show's ID and a Season number
 	// or errors with ErrNotFound, ErrMissingShow, or ErrInternalServer
 	GetSeasonByNumber(showID string, seasonNumber int) (*Season, error)
 	// GetEpisode returns an Episode
 	// or errors with ErrNotFound, or ErrInternalServer
 	GetEpisode(episodeID string) (*Episode, error)
+	// GetEpisodesBySeason returns all Episodes for a Season
+	// or errors with ErrNotFound, or ErrInternalServer
+	GetEpisodesBySeason(seasonID string) ([]*Episode, error)
+	// GetEpisodesBySeasonNumber returns all Shows for a show and season number
+	// or errors with ErrNotFound, or ErrInternalServer
+	GetEpisodesBySeasonNumber(showID string, seasonNumber int) ([]*Episode, error)
 	// GetEpisodeByNumber returns an Episode  given a Show's ID a Season number
 	// and Episode's number
 	// or errors with ErrNotFound, ErrMissingShow, or ErrInternalServer
