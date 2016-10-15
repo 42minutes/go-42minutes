@@ -5,7 +5,11 @@ import (
 	"log"
 	"os"
 
+	"fmt"
+
 	minutes "github.com/42minutes/go-42minutes"
+	trakt "github.com/42minutes/go-trakt"
+	"github.com/dancannon/gorethink"
 	"golang.org/x/oauth2"
 )
 
@@ -22,9 +26,10 @@ type daemon struct {
 }
 
 // HandleWatcherNotification handles watcher notifications
-func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, filename string) {
+func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, path string) {
+	fmt.Println(notifType, path)
 	// find episode, season, and show
-	epis, _ := d.matcher.Match(filename)
+	epis, _ := d.matcher.Match(path)
 	seas, _ := d.glibrary.GetSeason(epis[0].SeasonID)
 	show, _ := d.glibrary.GetShow(epis[0].ShowID)
 	// make sure they are in the user's library
@@ -71,53 +76,53 @@ func main() {
 
 	log.Println("Got trakt access refresh tokens.", tok.AccessToken, tok.RefreshToken)
 
-	// // trakt.tv client
-	// trkt := trakt.NewClient(
-	// 	traktClientID,
-	// 	trakt.TokenAuth{AccessToken: tok.AccessToken},
-	// )
+	// trakt.tv client
+	trkt := trakt.NewClient(
+		traktClientID,
+		trakt.TokenAuth{AccessToken: tok.AccessToken},
+	)
 
-	// // global ro trakt library
-	// glib := minutes.NewTraktLibrary(trkt)
+	// global ro trakt library
+	glib := minutes.NewTraktLibrary(trkt)
 
-	// // rethinkdb session
-	// redb, _ := gorethink.Connect(gorethink.ConnectOpts{
-	// 	Address: "localhost",
-	// })
+	// rethinkdb session
+	redb, _ := gorethink.Connect(gorethink.ConnectOpts{
+		Address: "localhost",
+	})
 
-	// // user rw library for single hardcoded user id
-	// ulib := minutes.NewUserLibrary(redb, "me")
+	// user rw library for single hardcoded user id
+	ulib := minutes.NewUserLibrary(redb, "me")
 
-	// // torrent finder
-	// fndr := &minutes.TorrentFinder{}
+	// torrent finder
+	fndr := &minutes.TorrentFinder{}
 
-	// // torrent download manager
-	// dwnl := &minutes.DownloaderTorrent{}
+	// torrent download manager
+	dwnl := &minutes.DownloaderTorrent{}
 
-	// // simple differ
-	// diff := &minutes.SimpleDiff{}
+	// simple differ
+	diff := &minutes.SimpleDiff{}
 
-	// // simple matcher
-	// mtch, _ := minutes.NewSimpleMatch(glib)
+	// simple matcher
+	mtch, _ := minutes.NewSimpleMatch(glib)
 
-	// // standalone daemon
-	// daem := &daemon{
-	// 	glibrary:   glib,
-	// 	ulibrary:   ulib,
-	// 	finder:     fndr,
-	// 	downloader: dwnl,
-	// 	differ:     diff,
-	// 	matcher:    mtch,
-	// }
+	// standalone daemon
+	daem := &daemon{
+		glibrary:   glib,
+		ulibrary:   ulib,
+		finder:     fndr,
+		downloader: dwnl,
+		differ:     diff,
+		matcher:    mtch,
+	}
 
-	// // create a new file watcher
-	// wtch := &minutes.FileWatcher{}
-	// // notify daemon when something changes
-	// wtch.Notify(daem)
+	// create a new file watcher
+	wtch := &minutes.FileWatcher{}
+	// notify daemon when something changes
+	wtch.Notify(daem)
 
-	// // start watching for changes
-	// go wtch.Watch("/tmp/tvseries", true)
+	// TODO run every x minutes check for missing episodes
+	go daem.Diff()
 
-	// // TODO run every x minutes check for missing episodes
-	// go daem.Diff()
+	// start watching for changes
+	wtch.Watch(cfg.SeriesPath)
 }
