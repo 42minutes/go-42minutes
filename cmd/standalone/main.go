@@ -78,7 +78,7 @@ func main() {
 
 	// trakt.tv client
 	trkt := trakt.NewClient(
-		traktClientID,
+		cfg.Trakt.ClientID,
 		trakt.TokenAuth{AccessToken: tok.AccessToken},
 	)
 
