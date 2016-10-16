@@ -48,7 +48,7 @@ func (d *daemon) Diff() {
 		gshow, _ := d.glibrary.GetShow(ushow.ID)
 		epis, _ := d.differ.Diff(ushow, gshow)
 		for _, epi := range epis {
-			torr, _ := d.finder.Find(epi)
+			torr, _ := d.finder.Find(gshow, epi)
 			d.downloader.Download(torr[0])
 		}
 	}
