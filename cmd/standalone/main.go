@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
+	"log"
+	"os"
+
 	minutes "github.com/42minutes/go-42minutes"
-	trakt "github.com/42minutes/go-trakt"
-	"github.com/dancannon/gorethink"
+	"golang.org/x/oauth2"
 )
 
 // daemon implements the WatchNotifier interface so it can be notified for
@@ -45,53 +48,76 @@ func (d *daemon) Diff() {
 }
 
 func main() {
-	// trakt.tv client
-	trkt := trakt.NewClient(
-		"CLIENT_ID",
-		trakt.TokenAuth{AccessToken: "ACCESS_TOKEN"},
-	)
-
-	// global ro trakt library
-	glib := minutes.NewTraktLibrary(trkt)
-
-	// rethinkdb session
-	redb, _ := gorethink.Connect(gorethink.ConnectOpts{
-		Address: "localhost",
-	})
-
-	// user rw library for single hardcoded user id
-	ulib := minutes.NewUserLibrary(redb, "me")
-
-	// torrent finder
-	fndr := &minutes.TorrentFinder{}
-
-	// torrent download manager
-	dwnl := &minutes.DownloaderTorrent{}
-
-	// simple differ
-	diff := &minutes.SimpleDiff{}
-
-	// simple matcher
-	mtch, _ := minutes.NewSimpleMatch(glib)
-
-	// standalone daemon
-	daem := &daemon{
-		glibrary:   glib,
-		ulibrary:   ulib,
-		finder:     fndr,
-		downloader: dwnl,
-		differ:     diff,
-		matcher:    mtch,
+	log.Println("Reading config file.")
+	cfg, err := loadConfig("./config.json")
+	if err != nil {
+		log.Println("Could not load config file.", err)
+		os.Exit(1)
 	}
 
-	// create a new file watcher
-	wtch := &minutes.FileWatcher{}
-	// notify daemon when something changes
-	wtch.Notify(daem)
+	log.Println("Getting trakt tokens.")
+	oac := &oauth2.Config{
+		ClientID:     cfg.Trakt.ClientID,
+		ClientSecret: cfg.Trakt.ClientSecret,
+		Scopes:       []string{},
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://api.trakt.tv/oauth/authorize",
+			TokenURL: "https://api.trakt.tv/oauth/token",
+		},
+	}
 
-	// start watching for changes
-	go wtch.Watch("/tmp/tvseries", true)
+	ctx := context.Background()
+	tok := newOAuthToken(ctx, oac)
 
-	// TODO run every x minutes check for missing episodes
-	go daem.Diff()
+	log.Println("Got trakt access refresh tokens.", tok.AccessToken, tok.RefreshToken)
+
+	// // trakt.tv client
+	// trkt := trakt.NewClient(
+	// 	traktClientID,
+	// 	trakt.TokenAuth{AccessToken: tok.AccessToken},
+	// )
+
+	// // global ro trakt library
+	// glib := minutes.NewTraktLibrary(trkt)
+
+	// // rethinkdb session
+	// redb, _ := gorethink.Connect(gorethink.ConnectOpts{
+	// 	Address: "localhost",
+	// })
+
+	// // user rw library for single hardcoded user id
+	// ulib := minutes.NewUserLibrary(redb, "me")
+
+	// // torrent finder
+	// fndr := &minutes.TorrentFinder{}
+
+	// // torrent download manager
+	// dwnl := &minutes.DownloaderTorrent{}
+
+	// // simple differ
+	// diff := &minutes.SimpleDiff{}
+
+	// // simple matcher
+	// mtch, _ := minutes.NewSimpleMatch(glib)
+
+	// // standalone daemon
+	// daem := &daemon{
+	// 	glibrary:   glib,
+	// 	ulibrary:   ulib,
+	// 	finder:     fndr,
+	// 	downloader: dwnl,
+	// 	differ:     diff,
+	// 	matcher:    mtch,
+	// }
+
+	// // create a new file watcher
+	// wtch := &minutes.FileWatcher{}
+	// // notify daemon when something changes
+	// wtch.Notify(daem)
+
+	// // start watching for changes
+	// go wtch.Watch("/tmp/tvseries", true)
+
+	// // TODO run every x minutes check for missing episodes
+	// go daem.Diff()
 }

@@ -3,10 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "E3kz0l+ZaXS/jPhb7TwVlc3fsr8=",
+			"checksumSHA1": "pL5S8Ey0as0eND6rt/wJ8Y/1nhg=",
 			"path": "github.com/42minutes/go-trakt",
-			"revision": "3708490db82036d033263e599b0d28d7de7b8053",
-			"revisionTime": "2016-10-15T13:16:18Z"
+			"revision": "d4d1e930d6f73ebb6234bca0f9a53ad702b7d1a8",
+			"revisionTime": "2016-10-16T00:37:03Z"
 		},
 		{
 			"checksumSHA1": "DWPL08pD/SQ2GzLfoR7ZXnjj7Sw=",
@@ -75,10 +75,10 @@
 			"revisionTime": "2014-07-29T16:48:41Z"
 		},
 		{
-			"checksumSHA1": "jkApfdCvJ5J0NO703HWbjk+pgSk=",
+			"checksumSHA1": "lnktSpRbwGSJKg+bRH2DJdP3iX0=",
 			"path": "github.com/jtacoma/uritemplates",
-			"revision": "802b8e24dbf0f556badb3a1401a49f6bfda80ca6",
-			"revisionTime": "2015-10-14T17:53:35Z"
+			"revision": "307ae868f90f4ee1b73ebe4596e0394237dacce8",
+			"revisionTime": "2016-07-02T15:35:54Z"
 		},
 		{
 			"checksumSHA1": "iUBA/Ah5mbfWGvUdnYrgAm7QnLg=",
