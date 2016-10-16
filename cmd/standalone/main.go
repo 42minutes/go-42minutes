@@ -30,12 +30,14 @@ func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, p
 	fmt.Println(notifType, path)
 	// find episode, season, and show
 	epis, _ := d.matcher.Match(path)
-	seas, _ := d.glibrary.GetSeason(epis[0].SeasonID)
-	show, _ := d.glibrary.GetShow(epis[0].ShowID)
+	// TODO(geoah) Implement actual flow
+	fmt.Println("Matched", path, "to", epis)
+	// seas, _ := d.glibrary.GetSeason(epis[0].SeasonID)
+	// show, _ := d.glibrary.GetShow(epis[0].ShowID)
 	// make sure they are in the user's library
-	d.ulibrary.UpsertShow(show)
-	d.ulibrary.UpsertSeason(seas)
-	d.ulibrary.UpsertEpisode(epis[0])
+	// d.ulibrary.UpsertShow(show)
+	// d.ulibrary.UpsertSeason(seas)
+	// d.ulibrary.UpsertEpisode(epis[0])
 }
 
 // Diff will attempt to figure out which episodes are missing from
