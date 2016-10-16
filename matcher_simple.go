@@ -1,6 +1,8 @@
 package minutes
 
 import (
+	"errors"
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -139,9 +141,21 @@ func (m *SimpleMatch) Match(fp string) (eps []*Episode, err error) {
 		return
 	}
 
-	// TODO(geoah) Find episode from glib and add it to the array
+	shs, err := m.globalLibrary.QueryShowsByTitle(me.Show)
+	fmt.Println("Trying to find show for ", me.Show)
+	fmt.Println("> Found", shs)
+	if err != nil {
+		return
+	}
+	if len(shs) == 0 {
+		err = errors.New("Not enough shows")
+		return
+	}
 	epn, _ := strconv.Atoi(me.Episode)
+	sen, _ := strconv.Atoi(me.Season)
 	ep := &Episode{
+		ShowID: fmt.Sprintf("%d", shs[0].IDs.Trakt),
+		Season: sen,
 		Number: epn,
 	}
 	eps = []*Episode{ep}
