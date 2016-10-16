@@ -18,7 +18,7 @@ const (
 type Watcher interface {
 	// Watch starts watching a directory or api
 	// or errors with ErrInternalServer
-	Watch(path string, recursive bool) error
+	Watch(dir string) error
 	// Notify adds Notifiees that want to be notified about file changes
 	Notify(WatcherNotifiee)
 }
@@ -26,5 +26,5 @@ type Watcher interface {
 // WatcherNotifiee is anything that wants to be notified about file changes
 type WatcherNotifiee interface {
 	// HandleWatcherNotification handles Watcher notifications
-	HandleWatcherNotification(notifType NotificationType, path string)
+	HandleWatcherNotification(notifType NotificationType, filepath string)
 }

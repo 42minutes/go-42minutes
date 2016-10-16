@@ -18,8 +18,9 @@ type RethinkConfig struct {
 
 // Config -
 type Config struct {
-	Trakt   *TraktConfig   `json:"trakt"`
-	Rethink *RethinkConfig `json:"rethinkdb"`
+	Trakt      *TraktConfig   `json:"trakt"`
+	Rethink    *RethinkConfig `json:"rethinkdb"`
+	SeriesPath string         `json:"series_path"`
 }
 
 func loadConfig(fp string) (*Config, error) {
