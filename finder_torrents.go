@@ -13,11 +13,15 @@ type TorrentFinder struct{}
 // Find Downloadable Torrents for a given Episode
 func (f *TorrentFinder) Find(sh *Show, ep *Episode) ([]Downloadable, error) {
 	// TODO(geoah) Handle error
-	_, ih, _ := torrentlookup.ProviderTPB.Search(fmt.Sprintf("%s s%02de%02d", sh.Title, ep.Season, ep.Number))
+	qr := fmt.Sprintf("%s s%02de%02d", sh.Title, ep.Season, ep.Number)
+	_, ih, _ := torrentlookup.ProviderTPB.Search(qr)
 	// TODO(geoah) Check nm agains matcher maybe
-	dl := &DownloadableMagnet{
-		Infohash: ih,
-		Magnet:   torrentlookup.CreateFakeMagnet(ih),
+	if ih != "" {
+		dl := &DownloadableMagnet{
+			Infohash: ih,
+			Magnet:   torrentlookup.CreateFakeMagnet(ih),
+		}
+		return []Downloadable{dl}, nil
 	}
-	return []Downloadable{dl}, nil
+	return []Downloadable{}, ErrNotFound
 }
