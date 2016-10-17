@@ -145,8 +145,10 @@ func (m *SimpleMatch) Match(fp string) (eps []*Episode, err error) {
 	fmt.Println("Trying to find show for ", me.Show)
 	fmt.Println("> Found", shs)
 	if err != nil {
+		log.Infof("> Could not find match for file '%s'", fp)
 		return
 	}
+
 	if len(shs) == 0 {
 		err = errors.New("Not enough shows")
 		return
@@ -158,6 +160,7 @@ func (m *SimpleMatch) Match(fp string) (eps []*Episode, err error) {
 		Season: sen,
 		Number: epn,
 	}
+	log.Infof("> Got match '%s' S%02dE%02d from file '%s'", me.Show, epn, sen, fp)
 	eps = []*Episode{ep}
 
 	return

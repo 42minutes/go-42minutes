@@ -2,15 +2,19 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
-
-	"fmt"
 
 	minutes "github.com/42minutes/go-42minutes"
 	trakt "github.com/42minutes/go-trakt"
 	"github.com/dancannon/gorethink"
+	logging "github.com/op/go-logging"
 	"golang.org/x/oauth2"
+)
+
+var log = logging.MustGetLogger("standalone")
+
+var format = logging.MustStringFormatter(
+	`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
 )
 
 // daemon implements the WatchNotifier interface so it can be notified for
@@ -27,7 +31,6 @@ type daemon struct {
 
 // HandleWatcherNotification handles watcher notifications
 func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, path string) {
-	fmt.Println(notifType, path)
 	// find episode, season, and show
 	epis, _ := d.matcher.Match(path)
 	// TODO(geoah) Implement actual flow
@@ -55,14 +58,14 @@ func (d *daemon) Diff() {
 }
 
 func main() {
-	log.Println("Reading config file.")
+	log.Info("Reading config file.")
 	cfg, err := loadConfig("./config.json")
 	if err != nil {
-		log.Println("Could not load config file.", err)
+		log.Info("Could not load config file.", err)
 		os.Exit(1)
 	}
 
-	log.Println("Getting trakt tokens.")
+	log.Info("Getting trakt tokens.")
 	oac := &oauth2.Config{
 		ClientID:     cfg.Trakt.ClientID,
 		ClientSecret: cfg.Trakt.ClientSecret,
@@ -76,7 +79,7 @@ func main() {
 	ctx := context.Background()
 	tok := newOAuthToken(ctx, oac)
 
-	log.Println("Got trakt access refresh tokens.", tok.AccessToken, tok.RefreshToken)
+	log.Info("Got trakt access refresh tokens.", tok.AccessToken, tok.RefreshToken)
 
 	// trakt.tv client
 	trkt := trakt.NewClient(
@@ -86,10 +89,11 @@ func main() {
 
 	// global ro trakt library
 	glib := minutes.NewTraktLibrary(trkt)
-
-	// rethinkdb session
+	log.Info(cfg.Rethink.Databases.Library)
+	// rethinkdb session for user library
 	redb, _ := gorethink.Connect(gorethink.ConnectOpts{
-		Address: "localhost",
+		Address:  "localhost",
+		Database: cfg.Rethink.Databases.Library,
 	})
 
 	// user rw library for single hardcoded user id

@@ -1,7 +1,6 @@
 package minutes
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -52,7 +51,7 @@ func (fw *FileWatcher) Watch(dir string) error {
 				}
 			case err := <-rw.Errors:
 				// TODO(geoah) Better error handling
-				log.Println("Watcher returned an error:", err)
+				log.Info("Watcher returned an error:", err)
 			}
 		}
 	}()

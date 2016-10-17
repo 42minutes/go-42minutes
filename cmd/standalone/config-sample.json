@@ -4,7 +4,10 @@
         "client_secret": ""
     },
     "rethinkdb": {
-        "address": "localhost"
+        "address": "localhost",
+        "databases": {
+            "library": "library"
+        }
     },
     "series_path": "/tmp/tvseries"
 }
