@@ -4,5 +4,5 @@ package minutes
 type Differ interface {
 	// Diff returns episodes missing from the user's Library
 	// or returns ErrInternalServer
-	Diff(user, global Library) (diff []*Episode, err error)
+	Diff(user, global *Show) (diff []*Episode, err error)
 }
