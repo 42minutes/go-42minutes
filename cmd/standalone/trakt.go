@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"hash/fnv"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -40,7 +39,7 @@ func tokenFromFile(file string) (*oauth2.Token, error) {
 func saveToken(file string, token *oauth2.Token) {
 	f, err := os.Create(file)
 	if err != nil {
-		log.Printf("Warning: failed to cache oauth token: %v", err)
+		log.Infof("Warning: failed to cache oauth token: %v", err)
 		return
 	}
 	defer f.Close()
@@ -54,8 +53,8 @@ func newOAuthToken(ctx context.Context, config *oauth2.Config) *oauth2.Token {
 		token = tokenFromWeb(ctx, config)
 		saveToken(cacheFile, token)
 	} else {
-		// log.Printf("Using cached token %#v from %q", token, cacheFile)
-		log.Printf("Using cached token from %q", cacheFile)
+		// log.Infof("Using cached token %#v from %q", token, cacheFile)
+		log.Infof("Using cached token from %q", cacheFile)
 	}
 
 	return token
@@ -70,7 +69,7 @@ func tokenFromWeb(ctx context.Context, config *oauth2.Config) *oauth2.Token {
 			return
 		}
 		if req.FormValue("state") != randState {
-			log.Printf("State doesn't match: req = %#v", req)
+			log.Infof("State doesn't match: req = %#v", req)
 			http.Error(rw, "", 500)
 			return
 		}
@@ -80,7 +79,7 @@ func tokenFromWeb(ctx context.Context, config *oauth2.Config) *oauth2.Token {
 			ch <- code
 			return
 		}
-		log.Printf("no code")
+		log.Infof("no code")
 		http.Error(rw, "", 500)
 	}))
 	go http.ListenAndServe(":9090", nil)
@@ -88,9 +87,9 @@ func tokenFromWeb(ctx context.Context, config *oauth2.Config) *oauth2.Token {
 	config.RedirectURL = "http://localhost:9090"
 	authURL := config.AuthCodeURL(randState)
 	go openURL(authURL)
-	log.Printf("Authorize this app at: %s", authURL)
+	log.Infof("Authorize this app at: %s", authURL)
 	code := <-ch
-	log.Printf("Got code: %s", code)
+	log.Infof("Got code: %s", code)
 
 	token, err := config.Exchange(ctx, code)
 	if err != nil {
@@ -107,7 +106,7 @@ func openURL(url string) {
 			return
 		}
 	}
-	log.Printf("Error opening URL in browser.")
+	log.Infof("Error opening URL in browser.")
 }
 
 func valueOrFileContents(value string, filename string) string {

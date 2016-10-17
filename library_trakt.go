@@ -2,6 +2,7 @@ package minutes
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	trakt "github.com/42minutes/go-trakt"
@@ -37,6 +38,7 @@ func (l *TraktLibrary) UpsertEpisode(episode *Episode) error {
 // GetShow returns a Show
 // or errors with ErrNotFound, or ErrInternalServer
 func (l *TraktLibrary) GetShow(showID string) (*Show, error) {
+	log.Infof("> Get show 'trakt:%s'", showID)
 	id, err := strconv.Atoi(showID)
 	if err != nil {
 		return nil, ErrInternalServer
@@ -47,11 +49,14 @@ func (l *TraktLibrary) GetShow(showID string) (*Show, error) {
 	}
 	// TODO: proper way to convert between structs
 	sh := Show{}
+	sh.ID = fmt.Sprintf("%d", show.IDs.Trakt)
 	data, err := json.Marshal(show)
 	if err != nil {
 		return nil, ErrInternalServer
 	}
 	json.Unmarshal(data, &sh)
+
+	log.Infof(">> Got show 'trakt:%s' as '%s'", showID, sh.Title)
 
 	return &sh, nil
 }
@@ -83,6 +88,8 @@ func (l *TraktLibrary) GetSeasonsByShow(showID string) ([]*Season, error) {
 	seasRs := []*Season{}
 	for _, season := range seasons {
 		se := Season{}
+		se.ID = fmt.Sprintf("%d", season.IDs.Trakt)
+		se.ShowID = showID
 		data, err := json.Marshal(season)
 		if err != nil {
 			return nil, ErrInternalServer
@@ -138,6 +145,8 @@ func (l *TraktLibrary) GetEpisodeByNumber(showID string, seasonNumber, episodeNu
 	}
 
 	ep := Episode{}
+	ep.ID = fmt.Sprintf("%d", episode.IDs.Trakt)
+	ep.ShowID = showID
 	data, err := json.Marshal(episode)
 	if err != nil {
 		return nil, ErrInternalServer
@@ -166,6 +175,8 @@ func (l *TraktLibrary) GetEpisodesBySeasonNumber(showID string, seasonNumber int
 	epsRs := []*Episode{}
 	for _, episode := range episodes {
 		ep := Episode{}
+		ep.ShowID = showID
+		ep.ID = fmt.Sprintf("%d", episode.IDs.Trakt)
 		data, err := json.Marshal(episode)
 		if err != nil {
 			return nil, ErrInternalServer
@@ -187,13 +198,14 @@ func (l *TraktLibrary) QueryShowsByTitle(title string) ([]*Show, error) {
 
 	shRs := []*Show{}
 	for _, show := range shows {
-		sh := Show{}
-		data, err := json.Marshal(show)
+		sh := &Show{}
+		sh.ID = fmt.Sprintf("%d", show.Show.IDs.Trakt)
+		data, err := json.Marshal(show.Show)
 		if err != nil {
 			return nil, ErrInternalServer
 		}
-		json.Unmarshal(data, &sh)
-		shRs = append(shRs, &sh)
+		err = json.Unmarshal(data, &sh)
+		shRs = append(shRs, sh)
 	}
 	return shRs, nil
 }

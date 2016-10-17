@@ -1,7 +1,6 @@
 package minutes
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -108,7 +107,7 @@ func (s *UserLibraryPersistenceSuite) SetupSuite() {
 	})
 
 	if errConnecting != nil {
-		fmt.Println("Could not connect to db", errConnecting)
+		log.Info("Could not connect to db", errConnecting)
 	}
 
 	s.library = &UserLibrary{

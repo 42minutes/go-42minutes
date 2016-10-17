@@ -1,10 +1,6 @@
 package minutes
 
-import (
-	"fmt"
-
-	rethink "github.com/dancannon/gorethink"
-)
+import rethink "github.com/dancannon/gorethink"
 
 const (
 	tableShows    = "shows"
@@ -19,10 +15,10 @@ type UserLibrary struct {
 }
 
 // NewUserLibrary returns a UserLibrary
-func NewUserLibrary(rethinkdb *rethink.Session, userID string) *UserLibrary {
+func NewUserLibrary(redb *rethink.Session, uid string) *UserLibrary {
 	return &UserLibrary{
-		rethinkdb: rethinkdb,
-		userID:    userID,
+		rethinkdb: redb,
+		userID:    uid,
 	}
 }
 
@@ -49,8 +45,10 @@ func (l *UserLibrary) UpsertEpisode(episode *Episode) error {
 // or errors with ErrNotFound, or ErrInternalServer
 func (l *UserLibrary) GetShow(id string) (*Show, error) {
 	sh := &Show{}
-	err := l.get(tableShows, id, sh)
-	return sh, err
+	if err := l.get(tableShows, id, sh); err != nil {
+		return nil, err
+	}
+	return sh, nil
 }
 
 // GetShows returns all Shows
@@ -177,7 +175,7 @@ func (l *UserLibrary) GetEpisodeByNumber(sid string, sn, en int) (*Episode, erro
 	qr = qr.Filter(map[string]interface{}{"season": sn, "number": en})
 	res, err := qr.Run(l.rethinkdb)
 	if err != nil {
-		fmt.Println(err)
+		log.Info(err)
 		return nil, ErrInternalServer
 	}
 	defer res.Close()

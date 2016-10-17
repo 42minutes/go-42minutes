@@ -1,7 +1,6 @@
 package minutes
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -32,10 +31,8 @@ func (fw *FileWatcher) Watch(dir string) error {
 		return err
 	}
 
-	defer rw.Close()
-
-	done := make(chan bool)
 	go func() {
+		defer rw.Close()
 		for {
 			select {
 			case event := <-rw.Events:
@@ -52,17 +49,14 @@ func (fw *FileWatcher) Watch(dir string) error {
 				}
 			case err := <-rw.Errors:
 				// TODO(geoah) Better error handling
-				log.Println("Watcher returned an error:", err)
+				log.Info("Watcher returned an error:", err)
 			}
 		}
 	}()
 
-	err = rw.AddFolder(dir)
-	if err != nil {
-		return err
-	}
+	go rw.AddFolder(dir)
 
-	<-done
+	log.Infof("Added folder %s", dir)
 
 	return nil
 }

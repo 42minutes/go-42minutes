@@ -4,5 +4,5 @@ package minutes
 // to the implementation and is optional
 type Finder interface {
 	// Find returns a list of Downloadables for a given Episode
-	Find(episode *Episode) ([]Downloadable, error)
+	Find(show *Show, episode *Episode) ([]Downloadable, error)
 }

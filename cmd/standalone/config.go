@@ -13,7 +13,10 @@ type TraktConfig struct {
 
 // RethinkConfig -
 type RethinkConfig struct {
-	Address string `json:"address"`
+	Address   string `json:"address"`
+	Databases struct {
+		Library string `json:"library"`
+	} `json:"databases"`
 }
 
 // Config -

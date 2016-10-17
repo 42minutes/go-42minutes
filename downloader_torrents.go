@@ -1,11 +1,22 @@
 package minutes
 
-// DownloadableTorrent is an implementation of the Downloadable
+// DownloadableTorrent is an implementation of the Downloadable for torrent files
 type DownloadableTorrent struct{}
 
 // GetID returns the torrent's hash
 func (d *DownloadableTorrent) GetID() string {
 	return ""
+}
+
+// DownloadableMagnet is an implementation of the Downloadable for magnet links
+type DownloadableMagnet struct {
+	Infohash string
+	Magnet   string
+}
+
+// GetID returns the torrent's hash
+func (d *DownloadableMagnet) GetID() string {
+	return d.Infohash
 }
 
 // DownloaderTorrent is an implementation of the Downloader specifically

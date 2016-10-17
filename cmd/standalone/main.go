@@ -2,16 +2,16 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
-
-	"fmt"
 
 	minutes "github.com/42minutes/go-42minutes"
 	trakt "github.com/42minutes/go-trakt"
 	"github.com/dancannon/gorethink"
+	logging "github.com/op/go-logging"
 	"golang.org/x/oauth2"
 )
+
+var log = logging.MustGetLogger("standalone")
 
 // daemon implements the WatchNotifier interface so it can be notified for
 // updates
@@ -27,42 +27,99 @@ type daemon struct {
 
 // HandleWatcherNotification handles watcher notifications
 func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, path string) {
-	fmt.Println(notifType, path)
 	// find episode, season, and show
 	epis, _ := d.matcher.Match(path)
-	// TODO(geoah) Implement actual flow
-	fmt.Println("Matched", path, "to", epis)
-	// seas, _ := d.glibrary.GetSeason(epis[0].SeasonID)
-	// show, _ := d.glibrary.GetShow(epis[0].ShowID)
-	// make sure they are in the user's library
-	// d.ulibrary.UpsertShow(show)
-	// d.ulibrary.UpsertSeason(seas)
-	// d.ulibrary.UpsertEpisode(epis[0])
+	// TODO(geoah) Handle error
+	if len(epis) == 0 {
+		return
+	}
+
+	ep := epis[0]
+
+	// TODO(geoah) Handle multiple matched episodes?
+
+	// make sure they are not already in the user's library
+	// updates to episodes will be handled differently
+	sh, err := d.ulibrary.GetShow(ep.ShowID)
+	// else add or update show
+	if err == minutes.ErrNotFound {
+		sh, _ = d.glibrary.GetShow(ep.ShowID)
+		if err := d.ulibrary.UpsertShow(sh); err != nil {
+			log.Error("Could not persist show in ulib", err)
+		}
+	} else if err != nil && err != minutes.ErrNotFound {
+		log.Error("An error occured trying to get show from user library", err)
+		return
+	}
+
+	se, err := d.ulibrary.GetSeasonByNumber(sh.ID, ep.Season)
+	// else add or update season
+	if err == minutes.ErrNotFound {
+		ses, _ := d.glibrary.GetSeasonsByShow(sh.ID)
+		for _, ise := range ses {
+			if ise.Number == ep.Season {
+				se = ise
+				break
+			}
+		}
+		if err := d.ulibrary.UpsertSeason(se); err != nil {
+			log.Error("Could not persist season in ulib", err)
+		}
+	} else if err != nil && err != minutes.ErrNotFound {
+		log.Error("An error occured trying to get season from user library", err)
+		return
+	}
+
+	_, err = d.ulibrary.GetEpisodeByNumber(sh.ID, ep.Season, ep.Number)
+	// else add or update season
+	if err == minutes.ErrNotFound {
+		uep, _ := d.glibrary.GetEpisodeByNumber(sh.ID, ep.Season, ep.Number)
+		if err := d.ulibrary.UpsertEpisode(uep); err != nil {
+			log.Error("Could not persist episode in ulib", err)
+		}
+		log.Infof(">> Added '%s' S%02dE%02d to user's library", sh.Title, ep.Season, ep.Number)
+	} else if err != nil && err != minutes.ErrNotFound {
+		log.Error("An error occured trying to get season from user library", err)
+		return
+	}
+
 }
 
 // Diff will attempt to figure out which episodes are missing from
 // the user's library, find their torrents and download them
 func (d *daemon) Diff() {
+	log.Info("Running diff")
 	shows, _ := d.ulibrary.GetShows()
-	for _, ushow := range shows {
-		gshow, _ := d.glibrary.GetShow(ushow.ID)
-		epis, _ := d.differ.Diff(ushow, gshow)
-		for _, epi := range epis {
-			torr, _ := d.finder.Find(epi)
-			d.downloader.Download(torr[0])
+	for _, ush := range shows {
+		log.Infof("> Diffing %s", ush.Title)
+		gsh, _ := d.glibrary.GetShow(ush.ID)
+		eps, _ := d.differ.Diff(ush, gsh)
+		for _, ep := range eps {
+			log.Infof(">> Trying to find way to download %s S%02dE%02d", gsh.Title, ep.Season, ep.Number)
+			dnls, _ := d.finder.Find(gsh, ep)
+			if len(dnls) > 0 {
+				log.Infof(">>> Found hash for magnet: %s", dnls[0].GetID())
+				// d.downloader.Download(dnls[0])
+			} else {
+				log.Infof(">>> Could not find magnet")
+			}
 		}
 	}
 }
 
 func main() {
-	log.Println("Reading config file.")
+	logging.MustStringFormatter(
+		`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+	)
+
+	log.Info("Reading config file.")
 	cfg, err := loadConfig("./config.json")
 	if err != nil {
-		log.Println("Could not load config file.", err)
+		log.Info("Could not load config file.", err)
 		os.Exit(1)
 	}
 
-	log.Println("Getting trakt tokens.")
+	log.Info("Getting trakt tokens.")
 	oac := &oauth2.Config{
 		ClientID:     cfg.Trakt.ClientID,
 		ClientSecret: cfg.Trakt.ClientSecret,
@@ -76,7 +133,7 @@ func main() {
 	ctx := context.Background()
 	tok := newOAuthToken(ctx, oac)
 
-	log.Println("Got trakt access refresh tokens.", tok.AccessToken, tok.RefreshToken)
+	log.Info("Got trakt access refresh tokens.", tok.AccessToken, tok.RefreshToken)
 
 	// trakt.tv client
 	trkt := trakt.NewClient(
@@ -86,10 +143,10 @@ func main() {
 
 	// global ro trakt library
 	glib := minutes.NewTraktLibrary(trkt)
-
-	// rethinkdb session
+	// rethinkdb session for user library
 	redb, _ := gorethink.Connect(gorethink.ConnectOpts{
-		Address: "localhost",
+		Address:  "localhost",
+		Database: cfg.Rethink.Databases.Library,
 	})
 
 	// user rw library for single hardcoded user id
@@ -102,7 +159,7 @@ func main() {
 	dwnl := &minutes.DownloaderTorrent{}
 
 	// simple differ
-	diff := &minutes.SimpleDiff{}
+	diff := minutes.NewSimpleDiff(ulib, glib)
 
 	// simple matcher
 	mtch, _ := minutes.NewSimpleMatch(glib)
@@ -122,9 +179,9 @@ func main() {
 	// notify daemon when something changes
 	wtch.Notify(daem)
 
-	// TODO run every x minutes check for missing episodes
-	go daem.Diff()
-
 	// start watching for changes
 	wtch.Watch(cfg.SeriesPath)
+
+	// TODO run every x minutes check for missing episodes
+	daem.Diff()
 }
