@@ -31,10 +31,8 @@ func (fw *FileWatcher) Watch(dir string) error {
 		return err
 	}
 
-	defer rw.Close()
-
-	done := make(chan bool)
 	go func() {
+		defer rw.Close()
 		for {
 			select {
 			case event := <-rw.Events:
@@ -60,8 +58,6 @@ func (fw *FileWatcher) Watch(dir string) error {
 	if err != nil {
 		return err
 	}
-
-	<-done
 
 	return nil
 }
