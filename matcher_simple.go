@@ -141,9 +141,8 @@ func (m *SimpleMatch) Match(fp string) (eps []*Episode, err error) {
 		return
 	}
 
-	shs, err := m.globalLibrary.QueryShowsByTitle(me.Show)
-	fmt.Println("Trying to find show for ", me.Show)
-	fmt.Println("> Found", shs)
+	clsh := strings.Replace(me.Show, ".", " ", -1)
+	shs, err := m.globalLibrary.QueryShowsByTitle(clsh)
 	if err != nil {
 		log.Infof("> Could not find match for file '%s'", fp)
 		return
