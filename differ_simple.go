@@ -25,6 +25,10 @@ func (d *SimpleDiff) Diff(ush, gsh *Show) (diff []*Episode, err error) {
 	}
 
 	for _, gseas := range globalSeasons {
+		// TODO(geoah) At some point we might care about specials
+		if gseas.Number == 0 {
+			continue
+		}
 		// Get all episodes from global
 		gEpisodes, err := d.glibrary.GetEpisodesBySeasonNumber(ush.ID, gseas.Number)
 		if err != nil {
