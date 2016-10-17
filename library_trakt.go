@@ -195,13 +195,14 @@ func (l *TraktLibrary) QueryShowsByTitle(title string) ([]*Show, error) {
 
 	shRs := []*Show{}
 	for _, show := range shows {
-		sh := Show{}
-		data, err := json.Marshal(show)
+		sh := &Show{}
+		sh.ID = fmt.Sprintf("%d", show.Show.IDs.Trakt)
+		data, err := json.Marshal(show.Show)
 		if err != nil {
 			return nil, ErrInternalServer
 		}
-		json.Unmarshal(data, &sh)
-		shRs = append(shRs, &sh)
+		err = json.Unmarshal(data, &sh)
+		shRs = append(shRs, sh)
 	}
 	return shRs, nil
 }
