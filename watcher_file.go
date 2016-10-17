@@ -54,10 +54,9 @@ func (fw *FileWatcher) Watch(dir string) error {
 		}
 	}()
 
-	err = rw.AddFolder(dir)
-	if err != nil {
-		return err
-	}
+	go rw.AddFolder(dir)
+
+	log.Infof("Added folder %s", dir)
 
 	return nil
 }

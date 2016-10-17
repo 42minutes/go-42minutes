@@ -183,5 +183,5 @@ func main() {
 	wtch.Watch(cfg.SeriesPath)
 
 	// TODO run every x minutes check for missing episodes
-	// daem.Diff()
+	daem.Diff()
 }
