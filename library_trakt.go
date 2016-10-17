@@ -89,6 +89,7 @@ func (l *TraktLibrary) GetSeasonsByShow(showID string) ([]*Season, error) {
 	for _, season := range seasons {
 		se := Season{}
 		se.ID = fmt.Sprintf("%d", season.IDs.Trakt)
+		se.ShowID = showID
 		data, err := json.Marshal(season)
 		if err != nil {
 			return nil, ErrInternalServer
@@ -145,6 +146,7 @@ func (l *TraktLibrary) GetEpisodeByNumber(showID string, seasonNumber, episodeNu
 
 	ep := Episode{}
 	ep.ID = fmt.Sprintf("%d", episode.IDs.Trakt)
+	ep.ShowID = showID
 	data, err := json.Marshal(episode)
 	if err != nil {
 		return nil, ErrInternalServer
@@ -173,6 +175,7 @@ func (l *TraktLibrary) GetEpisodesBySeasonNumber(showID string, seasonNumber int
 	epsRs := []*Episode{}
 	for _, episode := range episodes {
 		ep := Episode{}
+		ep.ShowID = showID
 		ep.ID = fmt.Sprintf("%d", episode.IDs.Trakt)
 		data, err := json.Marshal(episode)
 		if err != nil {
