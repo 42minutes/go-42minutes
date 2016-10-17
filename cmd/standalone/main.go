@@ -33,14 +33,47 @@ type daemon struct {
 func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, path string) {
 	// find episode, season, and show
 	epis, _ := d.matcher.Match(path)
-	// TODO(geoah) Implement actual flow
-	fmt.Println("Matched", path, "to", epis)
-	// seas, _ := d.glibrary.GetSeason(epis[0].SeasonID)
-	// show, _ := d.glibrary.GetShow(epis[0].ShowID)
-	// make sure they are in the user's library
-	// d.ulibrary.UpsertShow(show)
-	// d.ulibrary.UpsertSeason(seas)
-	// d.ulibrary.UpsertEpisode(epis[0])
+	// TODO(geoah) Handle error
+	if len(epis) == 0 {
+		return
+	}
+
+	// TODO(geoah) Handle multiple matched episodes?
+
+	// make sure they are not already in the user's library
+	// updates to episodes will be handled differently
+	sh, err := d.ulibrary.GetShow(epis[0].ShowID)
+	if err != nil && err != minutes.ErrNotFound {
+		log.Error("An error occured trying to get show from user library", err)
+		return
+	}
+
+	if sh != nil {
+		log.Error("Show already exists in user library")
+		return
+	}
+
+	// add show
+	show, _ := d.glibrary.GetShow(epis[0].ShowID)
+	if err := d.ulibrary.UpsertShow(show); err != nil {
+		log.Error("Could not persist show in ulib", err)
+	}
+
+	// add seasons
+	seas, _ := d.glibrary.GetSeasonsByShow(epis[0].ShowID)
+	for _, se := range seas {
+		if err := d.ulibrary.UpsertSeason(se); err != nil {
+			log.Error("Could not persist season in ulib", err)
+		}
+		// add episodes
+		sepis, err := d.glibrary.GetEpisodesBySeasonNumber(epis[0].ShowID, se.Number)
+		if err != nil {
+			log.Error("Could not persist episode in ulib", err)
+		}
+		for _, sep := range sepis {
+			d.ulibrary.UpsertEpisode(sep)
+		}
+	}
 }
 
 // Diff will attempt to figure out which episodes are missing from
