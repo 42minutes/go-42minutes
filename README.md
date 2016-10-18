@@ -1,6 +1,7 @@
 # 42minutes
 
 [![Build Status](https://travis-ci.org/42minutes/go-42minutes.svg?branch=chore%2Fadd-travis-ci)](https://travis-ci.org/42minutes/go-42minutes)
+[![Go Report Card](https://goreportcard.com/badge/github.com/42minutes/go-42minutes)](https://goreportcard.com/report/github.com/42minutes/go-42minutes)
 
 42minutes is a collection of tools to manage your tv-series collection.  
 It consists of a client, server, and user interface.
