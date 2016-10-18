@@ -1,0 +1,15 @@
+language: go
+
+go:
+  - 1.7
+
+addons:
+  rethinkdb: "2.3"
+
+install:
+  - go get -u github.com/kardianos/govendor
+  - govendor sync 
+
+script:
+ - go test -v ./...
+ - cd cmd/standalone && go build
