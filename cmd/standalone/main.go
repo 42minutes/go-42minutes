@@ -16,6 +16,7 @@ var log = logging.MustGetLogger("standalone")
 // daemon implements the WatchNotifier interface so it can be notified for
 // updates
 type daemon struct {
+	config     *Config
 	watcher    minutes.Watcher
 	glibrary   minutes.Library
 	ulibrary   minutes.Library
@@ -166,6 +167,7 @@ func main() {
 
 	// standalone daemon
 	daem := &daemon{
+		config:     cfg,
 		glibrary:   glib,
 		ulibrary:   ulib,
 		finder:     fndr,
@@ -179,9 +181,6 @@ func main() {
 	// notify daemon when something changes
 	wtch.Notify(daem)
 
-	// start watching for changes
-	wtch.Watch(cfg.SeriesPath)
-
-	// TODO run every x minutes check for missing episodes
-	daem.Diff()
+	// start shell
+	daem.startShell()
 }

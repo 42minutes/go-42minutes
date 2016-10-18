@@ -28,6 +28,12 @@
 			"revisionTime": "2016-03-17T14:11:10Z"
 		},
 		{
+			"checksumSHA1": "ozIqn2GBGEE97uK8WFcliie/qtg=",
+			"path": "github.com/abiosoft/ishell",
+			"revision": "a7612be24192ddf96ba5f1fd5654d2e96a7553c7",
+			"revisionTime": "2016-10-04T15:53:07Z"
+		},
+		{
 			"checksumSHA1": "oLYnEHr1dTmo+QYudDHJJWNZ0a4=",
 			"origin": "github.com/42minutes/go-torrentlookup/vendor/github.com/andybalholm/cascadia",
 			"path": "github.com/andybalholm/cascadia",
@@ -63,6 +69,12 @@
 			"path": "github.com/dancannon/gorethink/types",
 			"revision": "6468f77f2e54184f2ff8fec0006c008ac9eca496",
 			"revisionTime": "2015-10-02T20:54:56Z"
+		},
+		{
+			"checksumSHA1": "VdXZPcDRHK1T7XjBu2KW8Mb8S6w=",
+			"path": "github.com/flynn/go-shlex",
+			"revision": "3f9db97f856818214da2e1057f8ad84803971cff",
+			"revisionTime": "2015-05-15T14:53:56Z"
 		},
 		{
 			"checksumSHA1": "nmc2qcdbg17Ny8tHeEDQuphV6jA=",
@@ -105,6 +117,12 @@
 			"path": "github.com/jtacoma/uritemplates",
 			"revision": "307ae868f90f4ee1b73ebe4596e0394237dacce8",
 			"revisionTime": "2016-07-02T15:35:54Z"
+		},
+		{
+			"checksumSHA1": "BoXdUBWB8UnSlFlbnuTQaPqfCGk=",
+			"path": "github.com/op/go-logging",
+			"revision": "970db520ece77730c7e4724c61121037378659d9",
+			"revisionTime": "2016-03-15T20:05:05Z"
 		},
 		{
 			"checksumSHA1": "iUBA/Ah5mbfWGvUdnYrgAm7QnLg=",
@@ -209,6 +227,12 @@
 			"path": "google.golang.org/appengine/urlfetch",
 			"revision": "267c27e7492265b84fc6719503b14a1e17975d79",
 			"revisionTime": "2016-06-21T05:59:22Z"
+		},
+		{
+			"checksumSHA1": "VAPpB3iZ9bfjWqNDoX7qXqfRcQU=",
+			"path": "gopkg.in/readline.v1",
+			"revision": "62c6fe6193755f722b8b8788aa7357be55a50ff1",
+			"revisionTime": "2016-07-26T13:51:17Z"
 		}
 	],
 	"rootPath": "github.com/42minutes/go-42minutes"
