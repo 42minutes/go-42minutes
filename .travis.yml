@@ -9,6 +9,7 @@ addons:
 install:
   - go get -u github.com/kardianos/govendor
   - go get ./...
+  - go get github.com/stretchr/testify
 
 script:
  - go test -v ./...
