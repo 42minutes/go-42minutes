@@ -1,12 +1,12 @@
 {
 	"comment": "",
-	"ignore": "test",
+	"ignore": "",
 	"package": [
 		{
 			"checksumSHA1": "ud6gf1tvWnhbheXKWfep+qw7/i0=",
 			"path": "github.com/42minutes/go-torrentlookup",
-			"revision": "9784d50a17b154cfe02f4c837f43816665381591",
-			"revisionTime": "2016-10-16T21:39:14Z"
+			"revision": "c7bb5cdd037dd15cddd9af409e3853527dc8f4b6",
+			"revisionTime": "2016-10-18T23:43:56Z"
 		},
 		{
 			"checksumSHA1": "pL5S8Ey0as0eND6rt/wJ8Y/1nhg=",
