@@ -99,19 +99,7 @@ func (d *daemon) Diff() {
 		eps, _ := d.differ.Diff(ush, gsh)
 		for _, ep := range eps {
 			log.Infof(">> Trying to find way to download %s S%02dE%02d", gsh.Title, ep.Season, ep.Number)
-			dnls, err := d.finder.Find(gsh, ep)
-			if err != nil {
-				log.Warning(">>> Could not find magnet", err)
-			} else {
-				if len(dnls) > 0 {
-					log.Infof(">>> Found hash for magnet: %s", dnls[0].GetID())
-					if err := d.downloader.Download(dnls[0]); err != nil {
-						log.Warning(">>> Could not download episode", err)
-					}
-				} else {
-
-				}
-			}
+			d.queue.Add(ep)
 		}
 	}
 }
@@ -177,7 +165,7 @@ func main() {
 	wtch := &minutes.FileWatcher{}
 
 	// queue
-	qu, _ := minutes.NewQueue(redb, fndr)
+	qu, _ := minutes.NewQueue(redb, fndr, glib, dwnl)
 
 	// standalone daemon
 	daem := &daemon{
@@ -194,6 +182,7 @@ func main() {
 
 	// notify daemon when something changes
 	wtch.Notify(daem)
+	qu.Process()
 
 	// start shell
 	daem.startShell()
