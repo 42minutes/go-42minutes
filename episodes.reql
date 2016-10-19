@@ -4,4 +4,3 @@ r.db('library').tableCreate('seasons');
 r.db('library').table('seasons').indexCreate('show_id');
 r.db('library').tableCreate('episodes');
 r.db('library').table('episodes').indexCreate('show_id');
-r.db('library').table('episodes').indexCreate('season_id');
