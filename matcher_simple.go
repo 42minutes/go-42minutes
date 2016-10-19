@@ -43,11 +43,11 @@ var (
 // SimpleMatch uses regular expressions to match against a show, season,
 // and episode
 type SimpleMatch struct {
-	globalLibrary Library
+	globalLibrary ShowLibrary
 }
 
 // NewSimpleMatch returns a SimpleMatch
-func NewSimpleMatch(glib Library) (*SimpleMatch, error) {
+func NewSimpleMatch(glib ShowLibrary) (*SimpleMatch, error) {
 	return &SimpleMatch{
 		globalLibrary: glib,
 	}, nil

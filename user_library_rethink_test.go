@@ -308,13 +308,13 @@ func (s *UserLibraryPersistenceSuite) TestUserLibrary_GetSeasonsByShow_Success()
 	s.addShows()
 	s.addSeasons()
 
-	shs, err := s.library.GetSeasonsByShow(s1.ID)
+	shs, err := s.library.GetSeasons(s1.ID)
 	s.Equal(2, len(shs))
 	s.Nil(err)
 	s.Contains(shs, s1s1)
 	s.Contains(shs, s1s2)
 
-	shs, err = s.library.GetSeasonsByShow(s2.ID)
+	shs, err = s.library.GetSeasons(s2.ID)
 	s.Equal(2, len(shs))
 	s.Nil(err)
 	s.Contains(shs, s2s1)
@@ -341,14 +341,14 @@ func (s *UserLibraryPersistenceSuite) TestUserLibrary_GetEpisodesBySeason_Succes
 func (s *UserLibraryPersistenceSuite) TestUserLibrary_GetEpisodesBySeasonNumber_Success() {
 	s.addEpisodes()
 
-	eps, err := s.library.GetEpisodesBySeasonNumber(s1s1.ShowID, s1s1.Number)
+	eps, err := s.library.GetEpisodes(s1s1.ShowID, s1s1.Number)
 	s.Equal(3, len(eps))
 	s.Nil(err)
 	s.Contains(eps, s1s1e1)
 	s.Contains(eps, s1s1e2)
 	s.Contains(eps, s1s1e3)
 
-	eps, err = s.library.GetEpisodesBySeasonNumber(s2s2.ShowID, s2s2.Number)
+	eps, err = s.library.GetEpisodes(s2s2.ShowID, s2s2.Number)
 	s.Equal(1, len(eps))
 	s.Nil(err)
 	s.Contains(eps, s2s2e2)
@@ -357,11 +357,11 @@ func (s *UserLibraryPersistenceSuite) TestUserLibrary_GetEpisodesBySeasonNumber_
 func (s *UserLibraryPersistenceSuite) TestUserLibrary_GetEpisodeByNumber_Success() {
 	s.addEpisodes()
 
-	ep, err := s.library.GetEpisodeByNumber(s1s1e1.ShowID, s1s1e1.Season, s1s1e1.Number)
+	ep, err := s.library.GetEpisode(s1s1e1.ShowID, s1s1e1.Season, s1s1e1.Number)
 	s.Equal(s1s1e1, ep)
 	s.Nil(err)
 
-	ep, err = s.library.GetEpisodeByNumber(s2s2e2.ShowID, s2s2e2.Season, s2s2e2.Number)
+	ep, err = s.library.GetEpisode(s2s2e2.ShowID, s2s2e2.Season, s2s2e2.Number)
 	s.Equal(s2s2e2, ep)
 	s.Nil(err)
 }

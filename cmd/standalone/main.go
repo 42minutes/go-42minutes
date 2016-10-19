@@ -18,8 +18,8 @@ var log = logging.MustGetLogger("standalone")
 type daemon struct {
 	config     *Config
 	watcher    minutes.Watcher
-	glibrary   minutes.Library
-	ulibrary   minutes.Library
+	glibrary   minutes.ShowLibrary
+	ulibrary   minutes.UserLibrary
 	finder     minutes.Finder
 	downloader minutes.Downloader
 	differ     minutes.Differ
@@ -45,7 +45,15 @@ func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, p
 	sh, err := d.ulibrary.GetShow(ep.ShowID)
 	// else add or update show
 	if err == minutes.ErrNotFound {
-		sh, _ = d.glibrary.GetShow(ep.ShowID)
+		gsh, err := d.glibrary.GetShow(ep.ShowID)
+		if err != nil {
+			log.Error("Could not get show from glib", err)
+			return
+		}
+		sh = &minutes.UserShow{
+			ID:    gsh.ID,
+			Title: gsh.Title,
+		}
 		if err := d.ulibrary.UpsertShow(sh); err != nil {
 			log.Error("Could not persist show in ulib", err)
 		}
@@ -54,13 +62,16 @@ func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, p
 		return
 	}
 
-	se, err := d.ulibrary.GetSeasonByNumber(sh.ID, ep.Season)
+	se, err := d.ulibrary.GetSeason(sh.ID, ep.Season)
 	// else add or update season
 	if err == minutes.ErrNotFound {
-		ses, _ := d.glibrary.GetSeasonsByShow(sh.ID)
-		for _, ise := range ses {
-			if ise.Number == ep.Season {
-				se = ise
+		gses, _ := d.glibrary.GetSeasons(sh.ID)
+		for _, gse := range gses {
+			if gse.Number == ep.Season {
+				se = &minutes.UserSeason{
+					ShowID: sh.ID,
+					Number: gse.Number,
+				}
 				break
 			}
 		}
@@ -72,10 +83,15 @@ func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, p
 		return
 	}
 
-	_, err = d.ulibrary.GetEpisodeByNumber(sh.ID, ep.Season, ep.Number)
+	_, err = d.ulibrary.GetEpisode(sh.ID, ep.Season, ep.Number)
 	// else add or update season
 	if err == minutes.ErrNotFound {
-		uep, _ := d.glibrary.GetEpisodeByNumber(sh.ID, ep.Season, ep.Number)
+		gep, _ := d.glibrary.GetEpisode(sh.ID, ep.Season, ep.Number)
+		uep := &minutes.UserEpisode{
+			ShowID: sh.ID,
+			Season: se.Number,
+			Number: gep.Number,
+		}
 		if err := d.ulibrary.UpsertEpisode(uep); err != nil {
 			log.Error("Could not persist episode in ulib", err)
 		}

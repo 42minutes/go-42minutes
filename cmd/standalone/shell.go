@@ -13,27 +13,6 @@ func (d *daemon) startShell() {
 	shell := ishell.New()
 	shell.Println("* 42minutes standalone client")
 
-	// register add function to add new series
-	shell.Register("add", func(args ...string) (string, error) {
-		tt := ""
-		if len(args) > 0 {
-			tt = strings.Join(args, " ")
-		}
-		shs, err := d.glibrary.QueryShowsByTitle(tt)
-		if err != nil || len(shs) == 0 {
-			return "Could not find series by name.", err
-		}
-
-		sh := shs[0]
-
-		if err := d.ulibrary.UpsertShow(sh); err != nil {
-			shell.Println()
-			return "Could not find series by name.", err
-		}
-
-		return fmt.Sprintf("Added '%s' to your library.", sh.Title), nil
-	})
-
 	// register function to add new series
 	shell.Register("add", func(args ...string) (string, error) {
 		tt := ""
@@ -45,7 +24,10 @@ func (d *daemon) startShell() {
 			return "Could not find any series matching the name you provided.", err
 		}
 
-		sh := shs[0]
+		sh := &minutes.UserShow{
+			ID:    shs[0].ID,
+			Title: shs[0].Title,
+		}
 
 		if ush, err := d.ulibrary.GetShow(sh.ID); err != nil {
 			if err != minutes.ErrNotFound {
