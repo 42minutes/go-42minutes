@@ -1,6 +1,7 @@
 r.dbCreate('library');
 r.db('library').tableCreate('shows');
 r.db('library').tableCreate('seasons');
+r.db('library').tableCreate('queue');
 r.db('library').table('seasons').indexCreate('show_id');
 r.db('library').tableCreate('episodes');
 r.db('library').table('episodes').indexCreate('show_id');
