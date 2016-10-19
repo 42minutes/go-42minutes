@@ -24,6 +24,7 @@ type daemon struct {
 	downloader minutes.Downloader
 	differ     minutes.Differ
 	matcher    minutes.Matcher
+	queue      *minutes.Queue
 }
 
 // HandleWatcherNotification handles watcher notifications
@@ -89,6 +90,7 @@ func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, p
 // Diff will attempt to figure out which episodes are missing from
 // the user's library, find their torrents and download them
 func (d *daemon) Diff() {
+	// Add episodes to queue
 	log.Info("Running diff")
 	shows, _ := d.ulibrary.GetShows()
 	for _, ush := range shows {
@@ -97,19 +99,7 @@ func (d *daemon) Diff() {
 		eps, _ := d.differ.Diff(ush, gsh)
 		for _, ep := range eps {
 			log.Infof(">> Trying to find way to download %s S%02dE%02d", gsh.Title, ep.Season, ep.Number)
-			dnls, err := d.finder.Find(gsh, ep)
-			if err != nil {
-				log.Warning(">>> Could not find magnet", err)
-			} else {
-				if len(dnls) > 0 {
-					log.Infof(">>> Found hash for magnet: %s", dnls[0].GetID())
-					if err := d.downloader.Download(dnls[0]); err != nil {
-						log.Warning(">>> Could not download episode", err)
-					}
-				} else {
-
-				}
-			}
+			d.queue.Add(ep)
 		}
 	}
 }
@@ -174,6 +164,9 @@ func main() {
 	// create a new file watcher
 	wtch := &minutes.FileWatcher{}
 
+	// queue
+	qu, _ := minutes.NewQueue(redb, fndr, glib, dwnl)
+
 	// standalone daemon
 	daem := &daemon{
 		config:     cfg,
@@ -184,10 +177,12 @@ func main() {
 		differ:     diff,
 		matcher:    mtch,
 		watcher:    wtch,
+		queue:      qu,
 	}
 
 	// notify daemon when something changes
 	wtch.Notify(daem)
+	qu.Process()
 
 	// start shell
 	daem.startShell()
