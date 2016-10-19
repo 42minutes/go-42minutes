@@ -12,46 +12,57 @@ used by a single user.
 
 __The standalone daemon is the first thing 42minutes will focus on.__
 
-## client
+## standalone
 
-The client should be able to
+The standalone client should be able to
 
 * Watch the user's local library and identify existing series and episodes.
-* Upload the user's library metadata to the 42minutes server and keep it up
-  to date.
-* Download episodes it is told to by the 42minutes server, either using an
-  internal downloader or an external application.
+* Find missing and new episode for the user's tv series.
+* Find magnet links for the missing and new episodes, and add them as `.magnet`
+  files in a watch folder that torrent clients can use.
+* Create a listing of episodes to download for Torrent RSS downloaders.
+* Exposes a simple interactive command line interface with the following
+  commands:
+  * `list` - lists all shows in user's library
+  * `add show-name` - adds show based on name in user's library
+  * `watch dir-path` - starts watching a directory recursively (if dir-path
+    default to config value)
+  * `diff` - runs diff to find missing episodes
 
-The client only sends file metadata to the server, and nothing else. It will
-only send the file's relative path to the watched directory, file size, and
-file checksum.
+### Getting started
 
-The server is the one responsible for understanding which series and episode
-this file belongs to.
+Go vendor doesn't work right now (issue #22), feel free to `go get ./...`
 
-## Server
+In addition for the time being (issue #19) the client requires rethinkdb to 
+hold the show and library data.
 
-The server's core responsibilities are to
+Quickest way is using docker compose via `docker-compose up` from the repo root.
+This will start rethinkdb with `8080`, `28015`, and `29015` bound on your host.
 
-* Keep a listing of each user's tv-series, seasons, and episodes.
-* Allow the users to specify which series they want to check for completenes
-  and new episodes.
-* Create a listing of episodes to download for the 42 minutes client, or
-  other RSS downloader.
+Once your rethink container is up and running you can visit `http://localhost:8080`,
+go to `Data Explorer` and create the required databases and tables.
+* Note: As long as you don't delete your `data` directory you don't have to do this again.
 
-To accomplish these tasks the server will be able understand which episodes
-the user is missing as well as to find sources where they can be downloaded
-from.
+```
+r.dbCreate('library');
+r.db('library').tableCreate('shows');
+r.db('library').tableCreate('seasons');
+r.db('library').table('seasons').indexCreate('show_id');
+r.db('library').tableCreate('episodes');
+r.db('library').table('episodes').indexCreate('show_id');
+```
 
-* Identify series name, season, and episode from file name or path.
-* Match the files against a tv-series provider such as trakt, tvdb, or other.
-* Identify missing episodes.
-* Watch for newly released episodes for tv series users are watching. 
-* Find missing or new episode download sources from torrents, nbz, or other.
+You can now copy the `cmd/standalone/config-sample.json` as `cmd/standalone/config.json`
+and modify it to match your settings. You will need Trakt.tv app id and secret.
 
-## User interface
+Now you can compile and run the standalone client by `cd cmd/stadalone && go run *.go`.
 
-We need a "simple" user interface to allow the users to
+The first time you will need to connect to your Trakt.tv account, a page will either pop
+up or you will need to copy/paste the auth URL. Once you authorize the app, you can close 
+the browser window and return to your terminal.
 
-* View their libraries and mark which series they want to download missing or
-  new episodes.
+You will be presented with a promt `>>>` where you can now try any of the
+available commands.
+
+At this point you can `watch` to the client can go through your episodes.
+And once this is done, `diff` to find your missing episodes, and their infohashes.

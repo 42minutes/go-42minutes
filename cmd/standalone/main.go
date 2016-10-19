@@ -165,6 +165,9 @@ func main() {
 	// simple matcher
 	mtch, _ := minutes.NewSimpleMatch(glib)
 
+	// create a new file watcher
+	wtch := &minutes.FileWatcher{}
+
 	// standalone daemon
 	daem := &daemon{
 		config:     cfg,
@@ -174,10 +177,9 @@ func main() {
 		downloader: dwnl,
 		differ:     diff,
 		matcher:    mtch,
+		watcher:    wtch,
 	}
 
-	// create a new file watcher
-	wtch := &minutes.FileWatcher{}
 	// notify daemon when something changes
 	wtch.Notify(daem)
 

@@ -9,5 +9,6 @@
             "library": "library"
         }
     },
-    "series_path": "/tmp/tvseries"
+    "series_path": "/tmp/tvseries",
+    "watch_path": "/tmp/watch"
 }
