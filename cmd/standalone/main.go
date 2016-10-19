@@ -97,12 +97,18 @@ func (d *daemon) Diff() {
 		eps, _ := d.differ.Diff(ush, gsh)
 		for _, ep := range eps {
 			log.Infof(">> Trying to find way to download %s S%02dE%02d", gsh.Title, ep.Season, ep.Number)
-			dnls, _ := d.finder.Find(gsh, ep)
-			if len(dnls) > 0 {
-				log.Infof(">>> Found hash for magnet: %s", dnls[0].GetID())
-				// d.downloader.Download(dnls[0])
+			dnls, err := d.finder.Find(gsh, ep)
+			if err != nil {
+				log.Warning(">>> Could not find magnet", err)
 			} else {
-				log.Infof(">>> Could not find magnet")
+				if len(dnls) > 0 {
+					log.Infof(">>> Found hash for magnet: %s", dnls[0].GetID())
+					if err := d.downloader.Download(dnls[0]); err != nil {
+						log.Warning(">>> Could not download episode", err)
+					}
+				} else {
+
+				}
 			}
 		}
 	}
@@ -157,7 +163,7 @@ func main() {
 	fndr := &minutes.TorrentFinder{}
 
 	// torrent download manager
-	dwnl := &minutes.DownloaderTorrent{}
+	dwnl := minutes.NewTorrentDownloader(cfg.WatchPath)
 
 	// simple differ
 	diff := minutes.NewSimpleDiff(ulib, glib)
