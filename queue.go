@@ -1,6 +1,7 @@
 package minutes
 
 import (
+	"fmt"
 	"time"
 
 	rethink "github.com/dancannon/gorethink"
@@ -11,10 +12,10 @@ const (
 )
 
 type item struct {
-	episode       *Episode  `gorethink:"episode"`
-	infohash      string    `gorethink:"infohash"`
-	downloaded    bool      `gorethink:"downloaded"`
-	retryDatetime time.Time `gorethink:"retryDatetime"`
+	episode       string `gorethink:"episode_id"`
+	infohash      string `gorethink:"infohash"`
+	downloaded    bool   `gorethink:"downloaded"`
+	retryDatetime int64  `gorethink:"retry_time"`
 }
 
 type Queue struct {
@@ -22,11 +23,11 @@ type Queue struct {
 	finder    Finder
 }
 
-func NewQueue(redb *rethink.Session, fndr Finder) *Queue {
+func NewQueue(redb *rethink.Session, fndr Finder) (*Queue, error) {
 	return &Queue{
 		rethinkdb: redb,
 		finder:    fndr,
-	}
+	}, nil
 }
 
 func (q *Queue) Add(ep *Episode) error {
@@ -36,10 +37,10 @@ func (q *Queue) Add(ep *Episode) error {
 	}
 
 	it := item{
-		episode:       ep,
+		episode:       ep.ID,
 		infohash:      "",
 		downloaded:    false,
-		retryDatetime: time.Now().Add(-10 * time.Minute),
+		retryDatetime: time.Now().Add(-10 * time.Minute).UTC().Unix(),
 	}
 
 	qr := rethink.Table(tableQueue).Insert(it, insertOpts)
@@ -52,13 +53,25 @@ func (q *Queue) Add(ep *Episode) error {
 func (q *Queue) Process() {
 	go func() {
 		for {
-			// run dirr
+			// get episodes from queue from db
+			res, err := rethink.Table(tableQueue).Filter(rethink.Row.Field("retry_time").Le(time.Now().UTC().Unix())).Run(q.rethinkdb)
+			if err != nil {
+				log.Error(err)
+			}
+
+			fmt.Println(res)
+			// find infohashes for episodes that retry is in the past
+			// update episode with infohash
+
+			time.Sleep(time.Minute * 5)
 		}
-		time.Sleep(time.Minute * 5)
 	}()
 	go func() {
 		for {
-			// find all episodes for which we need to find torrents
+			// get all episodes that have infohashes
+			// downloaded = false
+			// download
+			// update download
 		}
 		time.Sleep(time.Minute * 2)
 	}()
