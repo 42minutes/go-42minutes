@@ -17,7 +17,7 @@ func (f *TorrentFinder) Find(sh *Show, ep *Episode) ([]Downloadable, error) {
 	_, ih, _ := torrentlookup.ProviderTPB.Search(qr)
 	// TODO(geoah) Check nm agains matcher maybe
 	if ih != "" {
-		dl := &DownloadableMagnet{
+		dl := &MagnetDownloadable{
 			Infohash: ih,
 			Magnet:   torrentlookup.CreateFakeMagnet(ih),
 		}

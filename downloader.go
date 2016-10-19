@@ -20,16 +20,16 @@ type Downloader interface {
 	Download(Downloadable) error
 	// List returns all Downloadables
 	// or errors with ErrInternalServer
-	List() ([]Downloadable, error)
+	// List() ([]Downloadable, error)
 	// Start starts a download
 	// or errors with ErrNotFound, or ErrInternalServer
-	Start(dID string) error
+	// Start(dID string) error
 	// Stop stops a download
 	// or errors with ErrNotFound, or ErrInternalServer
-	Stop(dID string) error
+	// Stop(dID string) error
 	// Progress returns the Downloadable's progress (%)
 	// or errors with ErrNotFound, or ErrInternalServer
-	Progress(dID string) error
+	// Progress(dID string) error
 }
 
 // Downloadable describes anything that a Downloader could download

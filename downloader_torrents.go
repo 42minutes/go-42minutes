@@ -1,5 +1,10 @@
 package minutes
 
+import (
+	"fmt"
+	"io/ioutil"
+)
+
 // DownloadableTorrent is an implementation of the Downloadable for torrent files
 type DownloadableTorrent struct{}
 
@@ -8,48 +13,44 @@ func (d *DownloadableTorrent) GetID() string {
 	return ""
 }
 
-// DownloadableMagnet is an implementation of the Downloadable for magnet links
-type DownloadableMagnet struct {
+// MagnetDownloadable is an implementation of the Downloadable for magnet links
+type MagnetDownloadable struct {
 	Infohash string
 	Magnet   string
 }
 
 // GetID returns the torrent's hash
-func (d *DownloadableMagnet) GetID() string {
+func (d *MagnetDownloadable) GetID() string {
 	return d.Infohash
 }
 
-// DownloaderTorrent is an implementation of the Downloader specifically
-// for torrent files and magnet links
-type DownloaderTorrent struct{}
+// TorrentDownloader is an implementation of the Downloader specifically
+// for torrent files and magnet links.
+// The first version of this downloader only gets get .torrent and .magent
+// metadata-only files for other applications to download.
+type TorrentDownloader struct {
+	destination string
+}
+
+// NewTorrentDownloader returns a TorrentDownloader given a destination path
+func NewTorrentDownloader(dst string) *TorrentDownloader {
+	return &TorrentDownloader{
+		destination: dst,
+	}
+}
 
 // Download adds a Downloadable to the list of things to download
 // or errors with ErrDownloadableNotSupported, ErrDownloadableNotComplete,
 // or ErrInternalServer
-func (d *DownloaderTorrent) Download(Downloadable) error {
-	return nil
-}
-
-// List returns all Downloadables
-// or errors with ErrInternalServer
-func (d *DownloaderTorrent) List() ([]Downloadable, error) {
-	return []Downloadable{}, nil
-}
-
-// Start starts a download
-// or errors with ErrNotFound, or ErrInternalServer
-func (d *DownloaderTorrent) Start(dID string) error {
-	return nil
-}
-
-// Stop stops a download
-// or errors with ErrNotFound, or ErrInternalServer
-func (d *DownloaderTorrent) Stop(dID string) error {
-	return nil
-}
-
-// Progress returns the Downloadable's progress (%)
-// or errors with ErrNotFound, or ErrInternalServer
-func (d *DownloaderTorrent) Progress(dID string) error {
-	return nil
+func (d *TorrentDownloader) Download(dnl Downloadable) error {
+	switch v := dnl.(type) {
+	case *MagnetDownloadable:
+		fn := fmt.Sprintf("%s/%s.magnet", d.destination, dnl.GetID())
+		if err := ioutil.WriteFile(fn, []byte(v.Magnet), 0644); err != nil {
+			return err
+		}
+		return nil
+	default:
+		return ErrNotImplemented
+	}
 }
