@@ -20,25 +20,10 @@ func NewTraktLibrary(client *trakt.Client) *TraktLibrary {
 	}
 }
 
-// UpsertShow returns ErrNotImplemented
-func (l *TraktLibrary) UpsertShow(show *Show) error {
-	return ErrNotImplemented
-}
-
-// UpsertSeason returns ErrNotImplemented
-func (l *TraktLibrary) UpsertSeason(season *Season) error {
-	return ErrNotImplemented
-}
-
-// UpsertEpisode returns ErrNotImplemented
-func (l *TraktLibrary) UpsertEpisode(episode *Episode) error {
-	return ErrNotImplemented
-}
-
 // GetShow returns a Show
 // or errors with ErrNotFound, or ErrInternalServer
 func (l *TraktLibrary) GetShow(showID string) (*Show, error) {
-	log.Infof("> Get show 'trakt:%s'", showID)
+	// log.Infof("> Get show 'trakt:%s'", showID)
 	id, err := strconv.Atoi(showID)
 	if err != nil {
 		return nil, ErrInternalServer
@@ -56,25 +41,14 @@ func (l *TraktLibrary) GetShow(showID string) (*Show, error) {
 	}
 	json.Unmarshal(data, &sh)
 
-	log.Infof(">> Got show 'trakt:%s' as '%s'", showID, sh.Title)
+	// log.Infof(">> Got show 'trakt:%s' as '%s'", showID, sh.Title)
 
 	return &sh, nil
 }
 
-// GetShows returns ErrNotImplemented
-func (l *TraktLibrary) GetShows() ([]*Show, error) {
-	return nil, ErrNotImplemented
-}
-
-// GetSeason returns a Season
+// GetSeasons returns all Seasons for a show
 // or errors with ErrNotFound, or ErrInternalServer
-func (l *TraktLibrary) GetSeason(seasonID string) (*Season, error) {
-	return nil, ErrNotImplemented
-}
-
-// GetSeasonsByShow returns all Seasons for a show
-// or errors with ErrNotFound, or ErrInternalServer
-func (l *TraktLibrary) GetSeasonsByShow(showID string) ([]*Season, error) {
+func (l *TraktLibrary) GetSeasons(showID string) ([]*Season, error) {
 	id, err := strconv.Atoi(showID)
 	if err != nil {
 		return nil, ErrInternalServer
@@ -100,10 +74,10 @@ func (l *TraktLibrary) GetSeasonsByShow(showID string) ([]*Season, error) {
 	return seasRs, nil
 }
 
-// GetSeasonByNumber returns a Season given a Show's ID and a Season number
+// GetSeason returns a Season given a Show's ID and a Season number
 // or errors with ErrNotFound, ErrMissingShow, or ErrInternalServer
 // TODO not working and returs ErrNotImplemented
-func (l *TraktLibrary) GetSeasonByNumber(showID string, seasonNumber int) (*Season, error) {
+func (l *TraktLibrary) GetSeason(showID string, seasonNumber int) (*Season, error) {
 	id, err := strconv.Atoi(showID)
 	if err != nil {
 		return nil, ErrInternalServer
@@ -123,15 +97,10 @@ func (l *TraktLibrary) GetSeasonByNumber(showID string, seasonNumber int) (*Seas
 	return nil, ErrNotImplemented
 }
 
-// GetEpisode returns ErrNotImplemented
-func (l *TraktLibrary) GetEpisode(episodeID string) (*Episode, error) {
-	return nil, ErrNotImplemented
-}
-
-// GetEpisodeByNumber returns an Episode  given a Show's ID a Season number
+// GetEpisode returns an Episode  given a Show's ID a Season number
 // and Episode's number
 // or errors with ErrNotFound, ErrMissingShow, or ErrInternalServer
-func (l *TraktLibrary) GetEpisodeByNumber(showID string, seasonNumber, episodeNumber int) (*Episode, error) {
+func (l *TraktLibrary) GetEpisode(showID string, seasonNumber, episodeNumber int) (*Episode, error) {
 	id, err := strconv.Atoi(showID)
 	if err != nil {
 		return nil, ErrInternalServer
@@ -155,14 +124,9 @@ func (l *TraktLibrary) GetEpisodeByNumber(showID string, seasonNumber, episodeNu
 	return &ep, nil
 }
 
-// GetEpisodesBySeason returns ErrNotImplemented
-func (l *TraktLibrary) GetEpisodesBySeason(seasonID string) ([]*Episode, error) {
-	return nil, ErrNotImplemented
-}
-
-// GetEpisodesBySeasonNumber returns all Shows for a show and season number
+// GetEpisodes returns all Shows for a show and season number
 // or errors with ErrNotFound, or ErrInternalServer
-func (l *TraktLibrary) GetEpisodesBySeasonNumber(showID string, seasonNumber int) ([]*Episode, error) {
+func (l *TraktLibrary) GetEpisodes(showID string, seasonNumber int) ([]*Episode, error) {
 	id, err := strconv.Atoi(showID)
 	if err != nil {
 		return nil, ErrInternalServer
