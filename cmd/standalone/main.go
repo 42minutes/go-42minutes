@@ -109,6 +109,11 @@ func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, p
 		}
 	}
 
+	file := &minutes.UserFile{
+		Name: path,
+	}
+	uep.Files = append(uep.Files, file)
+
 	if err := d.ulibrary.UpsertEpisode(uep); err != nil {
 		log.Error("Could not persist episode in ulib", err)
 		return
