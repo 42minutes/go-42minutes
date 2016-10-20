@@ -35,6 +35,7 @@ func (l *RethinkUserLibrary) UpsertShow(show *UserShow) error {
 // UpsertSeason adds or updates a season
 // or errors with ErrNotImplemented, or ErrInternalServer, or ErrMissingShow
 func (l *RethinkUserLibrary) UpsertSeason(season *UserSeason) error {
+	season.CID = season.GetCID()
 	return l.upsert(tableSeasons, season)
 }
 
@@ -42,6 +43,7 @@ func (l *RethinkUserLibrary) UpsertSeason(season *UserSeason) error {
 // or errors with ErrNotImplemented, or ErrInternalServer, ErrMissingShow
 // or ErrMissingSeason
 func (l *RethinkUserLibrary) UpsertEpisode(episode *UserEpisode) error {
+	episode.CID = episode.GetCID()
 	return l.upsert(tableEpisodes, episode)
 }
 
@@ -78,7 +80,7 @@ func (l *RethinkUserLibrary) GetShows() ([]*UserShow, error) {
 // or errors with ErrNotFound, or ErrInternalServer
 func (l *RethinkUserLibrary) GetSeasons(sid string) ([]*UserSeason, error) {
 	qr := rethink.Table(tableSeasons)
-	qr = qr.Filter(map[string]interface{}{"id[0]": sid})
+	qr = qr.Filter(map[string]interface{}{"show_id": sid})
 	res, err := qr.Run(l.rethinkdb)
 	if err != nil {
 		return nil, ErrInternalServer
@@ -118,7 +120,7 @@ func (l *RethinkUserLibrary) GetSeason(sid string, sn int) (*UserSeason, error) 
 // or errors with ErrNotFound, or ErrInternalServer
 func (l *RethinkUserLibrary) GetEpisodes(sid string, sn int) ([]*UserEpisode, error) {
 	qr := rethink.Table(tableEpisodes)
-	qr = qr.Filter(map[string]interface{}{"id[0]": sid, "id[1]": sn})
+	qr = qr.Filter(map[string]interface{}{"show_id": sid, "season": sn})
 	res, err := qr.Run(l.rethinkdb)
 	if err != nil {
 		return nil, ErrInternalServer
