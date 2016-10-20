@@ -88,19 +88,26 @@ func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, p
 	if err == minutes.ErrNotFound {
 		gep, _ := d.glibrary.GetEpisode(sh.ID, ep.Season, ep.Number)
 		uep := &minutes.UserEpisode{
-			ShowID: sh.ID,
-			Season: se.Number,
-			Number: gep.Number,
+			ShowID:     sh.ID,
+			Season:     se.Number,
+			Number:     gep.Number,
+			Downloaded: true,
+		}
+		_, err := d.ulibrary.GetEpisode(uep.ShowID, uep.Season, uep.Number)
+		if err != nil && err != minutes.ErrNotFound {
+			log.Error("Could not get episode from user's library", err)
+			return
 		}
 		if err := d.ulibrary.UpsertEpisode(uep); err != nil {
 			log.Error("Could not persist episode in ulib", err)
+			return
 		}
 		log.Infof(">> Added '%s' S%02dE%02d to user's library", sh.Title, ep.Season, ep.Number)
 	} else if err != nil && err != minutes.ErrNotFound {
 		log.Error("An error occured trying to get season from user library", err)
-		return
+	} else {
+		log.Info("Episode already exists in user's library")
 	}
-
 }
 
 // Diff will attempt to figure out which episodes are missing from
@@ -114,7 +121,8 @@ func (d *daemon) Diff() {
 		gsh, _ := d.glibrary.GetShow(ush.ID)
 		eps, _ := d.differ.Diff(ush, gsh)
 		for _, ep := range eps {
-			log.Infof(">> Trying to find way to download %s S%02dE%02d", gsh.Title, ep.Season, ep.Number)
+			log.Infof(">> Marking %s S%02dE%02d for download", gsh.Title,
+				ep.Season, ep.Number)
 			d.queue.Add(ep)
 		}
 	}
@@ -181,7 +189,7 @@ func main() {
 	wtch := &minutes.FileWatcher{}
 
 	// queue
-	qu, _ := minutes.NewQueue(redb, fndr, glib, dwnl)
+	qu, _ := minutes.NewQueue(redb, fndr, glib, ulib, dwnl)
 
 	// standalone daemon
 	daem := &daemon{
@@ -198,6 +206,8 @@ func main() {
 
 	// notify daemon when something changes
 	wtch.Notify(daem)
+
+	// start processing the queue
 	qu.Process()
 
 	// start shell

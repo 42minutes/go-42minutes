@@ -38,7 +38,6 @@ func (d *daemon) startShell() {
 		}
 
 		if err := d.ulibrary.UpsertShow(sh); err != nil {
-			shell.Println()
 			return "Could not find series by name.", err
 		}
 

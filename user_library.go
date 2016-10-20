@@ -36,4 +36,8 @@ type UserLibrary interface {
 	// by their probability
 	// or errors with ErrInternalServer
 	QueryShowsByTitle(title string) ([]*UserShow, error)
+	// QueryEpisodesForFinder
+	QueryEpisodesForFinder() ([]*UserEpisode, error)
+	// QueryEpisodesForDownloader
+	QueryEpisodesForDownloader() ([]*UserEpisode, error)
 }

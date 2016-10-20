@@ -1,6 +1,10 @@
 package minutes
 
-import rethink "github.com/dancannon/gorethink"
+import (
+	"time"
+
+	rethink "github.com/dancannon/gorethink"
+)
 
 const (
 	tableShows    = "shows"
@@ -73,7 +77,8 @@ func (l *RethinkUserLibrary) GetShows() ([]*UserShow, error) {
 // GetSeasons returns all Seasons for a show
 // or errors with ErrNotFound, or ErrInternalServer
 func (l *RethinkUserLibrary) GetSeasons(sid string) ([]*UserSeason, error) {
-	qr := rethink.Table(tableSeasons).GetAllByIndex("show_id", sid)
+	qr := rethink.Table(tableSeasons)
+	qr = qr.Filter(map[string]interface{}{"id[0]": sid})
 	res, err := qr.Run(l.rethinkdb)
 	if err != nil {
 		return nil, ErrInternalServer
@@ -93,8 +98,7 @@ func (l *RethinkUserLibrary) GetSeasons(sid string) ([]*UserSeason, error) {
 // GetSeason returns a UserSeason given a UserShow's ID and a UserSeason number
 // or errors with ErrNotFound, ErrMissingShow, or ErrInternalServer
 func (l *RethinkUserLibrary) GetSeason(sid string, sn int) (*UserSeason, error) {
-	qr := rethink.Table(tableSeasons).GetAllByIndex("show_id", sid)
-	qr = qr.Filter(map[string]interface{}{"number": sn})
+	qr := rethink.Table(tableSeasons).Get([]interface{}{sid, sn})
 	res, err := qr.Run(l.rethinkdb)
 	if err != nil {
 		return nil, ErrInternalServer
@@ -113,8 +117,8 @@ func (l *RethinkUserLibrary) GetSeason(sid string, sn int) (*UserSeason, error) 
 // GetEpisodes returns all Shows for a show and season number
 // or errors with ErrNotFound, or ErrInternalServer
 func (l *RethinkUserLibrary) GetEpisodes(sid string, sn int) ([]*UserEpisode, error) {
-	qr := rethink.Table(tableEpisodes).GetAllByIndex("show_id", sid)
-	qr = qr.Filter(map[string]interface{}{"season": sn})
+	qr := rethink.Table(tableEpisodes)
+	qr = qr.Filter(map[string]interface{}{"id[0]": sid, "id[1]": sn})
 	res, err := qr.Run(l.rethinkdb)
 	if err != nil {
 		return nil, ErrInternalServer
@@ -135,8 +139,7 @@ func (l *RethinkUserLibrary) GetEpisodes(sid string, sn int) ([]*UserEpisode, er
 // and UserEpisode's number
 // or errors with ErrNotFound, ErrMissingShow, or ErrInternalServer
 func (l *RethinkUserLibrary) GetEpisode(sid string, sn, en int) (*UserEpisode, error) {
-	qr := rethink.Table(tableEpisodes).GetAllByIndex("show_id", sid)
-	qr = qr.Filter(map[string]interface{}{"season": sn, "number": en})
+	qr := rethink.Table(tableEpisodes).Get([]interface{}{sid, sn, en})
 	res, err := qr.Run(l.rethinkdb)
 	if err != nil {
 		log.Info(err)
@@ -200,4 +203,52 @@ func (l *RethinkUserLibrary) get(tbl, id string, doc interface{}) error {
 		return ErrInternalServer
 	}
 	return nil
+}
+
+// QueryEpisodesForFinder -
+func (l *RethinkUserLibrary) QueryEpisodesForFinder() ([]*UserEpisode, error) {
+	res, err := rethink.Table(tableEpisodes).Filter(
+		rethink.And(
+			rethink.Row.Field("downloaded").Eq(false),
+			rethink.Row.Field("retry_time").Le(time.Now().UTC().Unix()),
+			rethink.Row.Field("infohash").Eq(""),
+		),
+	).Run(l.rethinkdb)
+	if err != nil {
+		return nil, ErrInternalServer
+	}
+	defer res.Close()
+	eps := []*UserEpisode{}
+	if res.IsNil() {
+		return eps, nil
+	}
+	err = res.All(&eps)
+	if err != nil {
+		return nil, ErrInternalServer
+	}
+	return eps, nil
+}
+
+// QueryEpisodesForDownloader -
+func (l *RethinkUserLibrary) QueryEpisodesForDownloader() ([]*UserEpisode, error) {
+	res, err := rethink.Table(tableEpisodes).Filter(
+		rethink.And(
+			rethink.Row.Field("downloaded").Eq(false),
+			rethink.Row.Field("retry_time").Le(time.Now().UTC().Unix()),
+			rethink.Row.Field("infohash").Ne(""),
+		),
+	).Run(l.rethinkdb)
+	if err != nil {
+		return nil, ErrInternalServer
+	}
+	defer res.Close()
+	eps := []*UserEpisode{}
+	if res.IsNil() {
+		return eps, nil
+	}
+	err = res.All(&eps)
+	if err != nil {
+		return nil, ErrInternalServer
+	}
+	return eps, nil
 }
