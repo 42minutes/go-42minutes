@@ -1,5 +1,7 @@
 package minutes
 
+import "fmt"
+
 // UserShow struct
 type UserShow struct {
 	ID    string `json:"id" gorethink:"id"`
@@ -21,4 +23,9 @@ type UserEpisode struct {
 	Infohash      string `gorethink:"infohash"`
 	Downloaded    bool   `gorethink:"downloaded"`
 	RetryDatetime int64  `gorethink:"retry_time"`
+}
+
+func (e *UserEpisode) String() string {
+	return fmt.Sprintf("ID:%s S%02dE%02d [%s]:%t",
+		e.ShowID, e.Season, e.Number, e.Infohash, e.Downloaded)
 }

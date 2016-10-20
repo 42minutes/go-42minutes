@@ -7,6 +7,9 @@ import (
 	rethink "github.com/dancannon/gorethink"
 )
 
+var retryAfterHours = 3
+
+// Queue -
 type Queue struct {
 	rethinkdb *rethink.Session
 	finder    Finder
@@ -15,6 +18,7 @@ type Queue struct {
 	dwnl      Downloader
 }
 
+// NewQueue -
 func NewQueue(redb *rethink.Session, fndr Finder, glib ShowLibrary, ulib UserLibrary, dwnl Downloader) (*Queue, error) {
 	return &Queue{
 		rethinkdb: redb,
@@ -25,6 +29,7 @@ func NewQueue(redb *rethink.Session, fndr Finder, glib ShowLibrary, ulib UserLib
 	}, nil
 }
 
+// Add -
 func (q *Queue) Add(ep *Episode) error {
 	uep := &UserEpisode{
 		ShowID:        ep.ShowID,
@@ -39,6 +44,7 @@ func (q *Queue) Add(ep *Episode) error {
 	return nil
 }
 
+// Process -
 func (q *Queue) Process() {
 	go func() {
 		for {
@@ -47,7 +53,7 @@ func (q *Queue) Process() {
 				log.Error("Could not get items", err)
 			}
 
-			log.Warningf(">>> Processing (lookup) %d episodes.", len(items))
+			log.Warningf("[process-lookup] Processing %d episodes.", len(items))
 
 			for _, it := range items {
 				ep, err := q.glibrary.GetEpisode(it.ShowID, it.Season, it.Number)
@@ -62,15 +68,23 @@ func (q *Queue) Process() {
 
 				down, err := q.finder.Find(sh, ep)
 				if err != nil {
-					log.Warning(">>> Could not find magnet", err)
+					if err != ErrNotFound {
+						log.Errorf("[process-lookup] Error trying to find magnet for %s, %v", it, err)
+					}
 				} else {
 					if len(down) > 0 {
-						log.Infof(">>> Found hash for magnet: %s", down[0].GetID())
 						it.Infohash = down[0].GetID()
+						log.Infof("[process-lookup] Found hash for magnet %s", it)
 						if err := q.ulibrary.UpsertEpisode(it); err != nil {
-							// TODO(geoah) log error
-							log.Error(err)
+							log.Error("[process-lookup] Could not update episode.", err)
 						}
+					}
+				}
+				if it.Infohash == "" {
+					log.Infof("[process-lookup] Could not find magnet for %s, will retry in %d hours", it, retryAfterHours)
+					it.RetryDatetime = time.Now().Add(time.Hour * time.Duration(retryAfterHours)).UTC().Unix()
+					if err := q.ulibrary.UpsertEpisode(it); err != nil {
+						log.Error("[process-lookup] Could not update episode with retry.", err)
 					}
 				}
 			}
@@ -80,13 +94,12 @@ func (q *Queue) Process() {
 	}()
 	go func() {
 		for {
-			log.Warning(">>> Downloading queue...")
 			items, err := q.ulibrary.QueryEpisodesForDownloader()
 			if err != nil {
-				log.Error("Could not get items", err)
+				log.Error("[process-download] Could not get items", err)
 			}
 
-			log.Warningf(">>> Processing (downloading) %d episodes.", len(items))
+			log.Warningf("[process-download] Processing %d episodes.", len(items))
 
 			for _, it := range items {
 				err := q.dwnl.Download(&MagnetDownloadable{
@@ -95,15 +108,15 @@ func (q *Queue) Process() {
 				})
 
 				if err != nil {
-					log.Error("Could not download", err)
+					if err == ErrNotFound {
+						log.Errorf("[process-download] Error trying to download %s %v", it, err)
+					}
 				} else {
 					it.Downloaded = true
 					if err := q.ulibrary.UpsertEpisode(it); err != nil {
-						// TODO(geoah) log error
-						log.Error(err)
+						log.Error("[process-download] Could not update episode after downloading.", err)
 					}
-					log.Infof(">>> Downloaded ShowID: %s Season: %d Episode: %d Infohash: %s",
-						it.ShowID, it.Season, it.Number, it.Infohash)
+					log.Infof("[process-download] Downloaded %s ", it)
 				}
 			}
 			time.Sleep(time.Second * 45)

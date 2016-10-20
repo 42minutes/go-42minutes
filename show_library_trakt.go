@@ -23,7 +23,7 @@ func NewTraktLibrary(client *trakt.Client) *TraktLibrary {
 // GetShow returns a Show
 // or errors with ErrNotFound, or ErrInternalServer
 func (l *TraktLibrary) GetShow(showID string) (*Show, error) {
-	log.Infof("> Get show 'trakt:%s'", showID)
+	// log.Infof("> Get show 'trakt:%s'", showID)
 	id, err := strconv.Atoi(showID)
 	if err != nil {
 		return nil, ErrInternalServer
@@ -41,7 +41,7 @@ func (l *TraktLibrary) GetShow(showID string) (*Show, error) {
 	}
 	json.Unmarshal(data, &sh)
 
-	log.Infof(">> Got show 'trakt:%s' as '%s'", showID, sh.Title)
+	// log.Infof(">> Got show 'trakt:%s' as '%s'", showID, sh.Title)
 
 	return &sh, nil
 }
