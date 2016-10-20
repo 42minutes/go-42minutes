@@ -78,23 +78,18 @@ func (l *TraktLibrary) GetSeasons(showID string) ([]*Season, error) {
 // or errors with ErrNotFound, ErrMissingShow, or ErrInternalServer
 // TODO not working and returs ErrNotImplemented
 func (l *TraktLibrary) GetSeason(showID string, seasonNumber int) (*Season, error) {
-	id, err := strconv.Atoi(showID)
+	ses, err := l.GetSeasons(showID)
 	if err != nil {
 		return nil, ErrInternalServer
 	}
 
-	season, result := l.client.Seasons().ByNumber(id, seasonNumber)
-	if result.Err != nil {
-		return nil, ErrInternalServer
+	for _, se := range ses {
+		if se.Number == seasonNumber {
+			return se, nil
+		}
 	}
-	se := Season{}
-	data, err := json.Marshal(season)
-	if err != nil {
-		return nil, ErrInternalServer
-	}
-	json.Unmarshal(data, &se)
 
-	return nil, ErrNotImplemented
+	return nil, ErrNotFound
 }
 
 // GetEpisode returns an Episode  given a Show's ID a Season number

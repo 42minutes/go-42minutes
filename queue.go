@@ -30,14 +30,25 @@ func NewQueue(redb *rethink.Session, fndr Finder, glib ShowLibrary, ulib UserLib
 }
 
 // Add -
-func (q *Queue) Add(ep *Episode) error {
-	uep := &UserEpisode{
-		ShowID:        ep.ShowID,
-		Season:        ep.Season,
-		Number:        ep.Number,
-		Downloaded:    false,
-		RetryDatetime: time.Now().Add(-10 * time.Minute).UTC().Unix(),
+func (q *Queue) Add(ep *Episode, file *UserFile) error {
+	// TODO(geoah) Check if we need to start locking
+	uep, err := q.ulibrary.GetEpisode(ep.ShowID, ep.Season, ep.Number)
+	if err != nil && err != ErrNotFound {
+		return ErrInternalServer
+	} else if err == ErrNotFound {
+		uep = &UserEpisode{
+			ShowID: ep.ShowID,
+			Season: ep.Season,
+			Number: ep.Number,
+			Files:  []*UserFile{},
+		}
 	}
+	for _, ufile := range uep.Files {
+		if file.Resolution == ufile.Resolution && file.Source == ufile.Source {
+			return nil
+		}
+	}
+	uep.Files = append(uep.Files, file)
 	if err := q.ulibrary.UpsertEpisode(uep); err != nil {
 		return ErrInternalServer
 	}
@@ -73,16 +84,17 @@ func (q *Queue) Process() {
 					}
 				} else {
 					if len(down) > 0 {
-						it.Infohash = down[0].GetID()
+						it.Files[0].Status = "found"
+						it.Files[0].Infohash = down[0].GetID()
 						log.Infof("[process-lookup] Found hash for magnet %s", it)
 						if err := q.ulibrary.UpsertEpisode(it); err != nil {
 							log.Error("[process-lookup] Could not update episode.", err)
 						}
 					}
 				}
-				if it.Infohash == "" {
+				if it.Files[0].Infohash == "" {
 					log.Infof("[process-lookup] Could not find magnet for %s, will retry in %d hours", it, retryAfterHours)
-					it.RetryDatetime = time.Now().Add(time.Hour * time.Duration(retryAfterHours)).UTC().Unix()
+					it.Files[0].RetryTime = time.Now().Add(time.Hour * time.Duration(retryAfterHours)).UTC().Unix()
 					if err := q.ulibrary.UpsertEpisode(it); err != nil {
 						log.Error("[process-lookup] Could not update episode with retry.", err)
 					}
@@ -103,8 +115,8 @@ func (q *Queue) Process() {
 
 			for _, it := range items {
 				err := q.dwnl.Download(&MagnetDownloadable{
-					Infohash: it.Infohash,
-					Magnet:   torrentlookup.CreateFakeMagnet(it.Infohash),
+					Infohash: it.Files[0].Infohash,
+					Magnet:   torrentlookup.CreateFakeMagnet(it.Files[0].Infohash),
 				})
 
 				if err != nil {
@@ -112,7 +124,7 @@ func (q *Queue) Process() {
 						log.Errorf("[process-download] Error trying to download %s %v", it, err)
 					}
 				} else {
-					it.Downloaded = true
+					it.Files[0].Status = "downloading"
 					if err := q.ulibrary.UpsertEpisode(it); err != nil {
 						log.Error("[process-download] Could not update episode after downloading.", err)
 					}
