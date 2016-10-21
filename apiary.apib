@@ -1,0 +1,308 @@
+FORMAT: 1A
+HOST: http://localhost:8081/
+
+# 42minutes 
+
+User library
+
+## Shows Collection [/shows]
+
+### List All Shows [GET]
+
++ Response 200 (application/json)
+
+        [
+            {
+              "id": "99718",
+              "aired_episodes": 3,
+              "airs": {
+                "day": "Sunday",
+                "time": "21:00",
+                "timezone": "America\/New_York"
+              },
+              "country": "us",
+              "first_aired": "2016-10-02T07:00:00.000Z",
+              "genres": [
+                "western",
+                "science-fiction",
+                "thriller"
+              ],
+              "ids": {
+                "imdb": "tt0475784",
+                "slug": "westworld",
+                "tmdb": 63247,
+                "trakt": 99718,
+                "tvdb": 296762,
+                "tvrage": 37537
+              },
+              "images": {
+                "banner": {
+                  "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/banners\/original\/e93ecbbd52.jpg"
+                },
+                "clearart": {
+                  "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/cleararts\/original\/ba7abf8975.png"
+                },
+                "fanart": {
+                  "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/fanarts\/medium\/2ed2c4e7b1.jpg",
+                  "medium": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/fanarts\/medium\/2ed2c4e7b1.jpg",
+                  "thumb": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/fanarts\/thumb\/2ed2c4e7b1.jpg"
+                },
+                "logo": {
+                  "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/logos\/original\/63d82ff1be.png"
+                },
+                "poster": {
+                  "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/posters\/medium\/a1037bff3e.jpg",
+                  "medium": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/posters\/medium\/a1037bff3e.jpg",
+                  "thumb": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/posters\/thumb\/a1037bff3e.jpg"
+                },
+                "thumb": {
+                  "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/thumbs\/original\/72b791305b.jpg"
+                }
+              },
+              "language": "en",
+              "network": "HBO",
+              "overview": "Westworld is a dark odyssey about the dawn of artificial consciousness and the evolution of sin...",
+              "rating": 8.79032,
+              "runtime": 60,
+              "status": "returning series",
+              "title": "Westworld",
+              "year": 2016
+            }
+        ]
+
+## Show [/shows/{show_id}]
+
+### Get Single Show [GET]
+
++ Parameters
+    + show_id (string) - Trakt ID of the show
+    
++ Response 200 (application/json)
+
+        {
+          "id": "99718",
+          "aired_episodes": 3,
+          "airs": {
+            "day": "Sunday",
+            "time": "21:00",
+            "timezone": "America\/New_York"
+          },
+          "country": "us",
+          "first_aired": "2016-10-02T07:00:00.000Z",
+          "genres": [
+            "western",
+            "science-fiction",
+            "thriller"
+          ],
+          "ids": {
+            "imdb": "tt0475784",
+            "slug": "westworld",
+            "tmdb": 63247,
+            "trakt": 99718,
+            "tvdb": 296762,
+            "tvrage": 37537
+          },
+          "images": {
+            "banner": {
+              "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/banners\/original\/e93ecbbd52.jpg"
+            },
+            "clearart": {
+              "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/cleararts\/original\/ba7abf8975.png"
+            },
+            "fanart": {
+              "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/fanarts\/medium\/2ed2c4e7b1.jpg",
+              "medium": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/fanarts\/medium\/2ed2c4e7b1.jpg",
+              "thumb": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/fanarts\/thumb\/2ed2c4e7b1.jpg"
+            },
+            "logo": {
+              "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/logos\/original\/63d82ff1be.png"
+            },
+            "poster": {
+              "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/posters\/medium\/a1037bff3e.jpg",
+              "medium": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/posters\/medium\/a1037bff3e.jpg",
+              "thumb": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/posters\/thumb\/a1037bff3e.jpg"
+            },
+            "thumb": {
+              "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/thumbs\/original\/72b791305b.jpg"
+            }
+          },
+          "language": "en",
+          "network": "HBO",
+          "overview": "Westworld is a dark odyssey about the dawn of artificial consciousness and the evolution of sin...",
+          "rating": 8.79032,
+          "runtime": 60,
+          "status": "returning series",
+          "title": "Westworld",
+          "year": 2016
+        }
+
+## Seasons Collection [/shows/{show_id}/seasons]
+
+### List All Seasons for Show [GET]
+
++ Parameters
+    + show_id (string) - Trakt ID of the show
+
++ Response 200 (application/json)
+
+        [
+            {
+              "show_id": "99718",
+              "episode_count": 8,
+              "ids": {
+                "tmdb": 0,
+                "trakt": 121318,
+                "tvdb": 0,
+                "tvrage": 0
+              },
+              "images": {
+                "poster": {
+                  "full": "https:\/\/walter.trakt.us\/images\/seasons\/000\/121\/318\/posters\/medium\/3625be69af.jpg",
+                  "medium": "https:\/\/walter.trakt.us\/images\/seasons\/000\/121\/318\/posters\/medium\/3625be69af.jpg",
+                  "thumb": "https:\/\/walter.trakt.us\/images\/seasons\/000\/121\/318\/posters\/thumb\/3625be69af.jpg"
+                },
+                "thumb": {
+                  "full": ""
+                }
+              },
+              "number": 0,
+              "overview": "",
+              "rating": 9.33333,
+              "votes": 3
+            }
+        ]
+        
+## Season [/shows/{show_id}/seasons/{season}]
+
+### Get Single Season for Show [GET]
+
++ Parameters
+    + show_id (string) - Trakt ID of the show
+    + season (string) - Season number
+    
++ Response 200 (application/json)
+
+        {
+          "show_id": "99718",
+          "episode_count": 8,
+          "ids": {
+            "tmdb": 0,
+            "trakt": 121318,
+            "tvdb": 0,
+            "tvrage": 0
+          },
+          "images": {
+            "poster": {
+              "full": "https:\/\/walter.trakt.us\/images\/seasons\/000\/121\/318\/posters\/medium\/3625be69af.jpg",
+              "medium": "https:\/\/walter.trakt.us\/images\/seasons\/000\/121\/318\/posters\/medium\/3625be69af.jpg",
+              "thumb": "https:\/\/walter.trakt.us\/images\/seasons\/000\/121\/318\/posters\/thumb\/3625be69af.jpg"
+            },
+            "thumb": {
+              "full": ""
+            }
+          },
+          "number": 0,
+          "overview": "",
+          "rating": 9.33333,
+          "votes": 3
+        }
+
+
+## Episodes Collection [/shows/{show_id}/seasons/{season}/episodes]
+
+### List All Episodes for Season [GET]
+
++ Parameters
+    + show_id (string) - Trakt ID of the show
+    + season (string) - Season number
+
++ Response 200 (application/json)
+
+        [
+            {
+              "show_id": "99718",
+              "first_aired": "2016-10-03T01:00:00Z",
+              "ids": {
+                "imdb": "",
+                "tmdb": 1216345,
+                "trakt": 1895916,
+                "tvdb": 5626064,
+                "tvrage": 0
+              },
+              "images": {
+                "screenshot": {
+                  "full": "https:\/\/walter.trakt.us\/images\/episodes\/001\/895\/916\/screenshots\/medium\/3b357d94b1.jpg",
+                  "medium": "https:\/\/walter.trakt.us\/images\/episodes\/001\/895\/916\/screenshots\/medium\/3b357d94b1.jpg",
+                  "thumb": "https:\/\/walter.trakt.us\/images\/episodes\/001\/895\/916\/screenshots\/thumb\/3b357d94b1.jpg"
+                }
+              },
+              "number": 1,
+              "overview": "As another day of fantasy plays out in Westworld...",
+              "season": 1,
+              "title": "The Original",
+              "updated_at": "2016-10-21T18:04:51.000Z",
+              "files": [
+                {
+                  "name": "\/tmp\/tvseries\/Westworld.S01E01.HDTV.x264-FUM[ettv]-[rarbg.com].torrent",
+                  "path": "",
+                  "resolution": "",
+                  "source": "",
+                  "video_codec": "",
+                  "audio_codec": "",
+                  "release_group": "",
+                  "crc32": "",
+                  "status": "ok",
+                  "retry_time": 0
+                }
+              ]
+            }
+        ]
+
+## Episode [/shows/{show_id}/seasons/{season}/episodes/{episode}]
+
+### Get Single Episode for Season [GET]
+
++ Parameters
+    + show_id (string) - Trakt ID of the show
+    + season (string) - Season number
+    + episode (string) - Episode number
+    
++ Response 200 (application/json)
+
+        {
+          "show_id": "99718",
+          "first_aired": "2016-10-03T01:00:00Z",
+          "ids": {
+            "imdb": "",
+            "tmdb": 1216345,
+            "trakt": 1895916,
+            "tvdb": 5626064,
+            "tvrage": 0
+          },
+          "images": {
+            "screenshot": {
+              "full": "https:\/\/walter.trakt.us\/images\/episodes\/001\/895\/916\/screenshots\/medium\/3b357d94b1.jpg",
+              "medium": "https:\/\/walter.trakt.us\/images\/episodes\/001\/895\/916\/screenshots\/medium\/3b357d94b1.jpg",
+              "thumb": "https:\/\/walter.trakt.us\/images\/episodes\/001\/895\/916\/screenshots\/thumb\/3b357d94b1.jpg"
+            }
+          },
+          "number": 1,
+          "overview": "As another day of fantasy plays out in Westworld...",
+          "season": 1,
+          "title": "The Original",
+          "updated_at": "2016-10-21T18:04:51.000Z",
+          "files": [
+            {
+              "name": "Westworld.S01E01.HDTV.x264-FUM[ettv]-[rarbg.com].mkv",
+              "path": "",
+              "resolution": "1080p",
+              "source": "HDTV",
+              "video_codec": "x264",
+              "audio_codec": "AC3",
+              "release_group": "FUM",
+              "crc32": "",
+              "status": "ok",
+              "retry_time": 0
+            }
+          ]
+        }
