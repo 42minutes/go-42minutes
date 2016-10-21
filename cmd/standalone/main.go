@@ -110,7 +110,8 @@ func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, p
 	}
 
 	file := &minutes.UserFile{
-		Name: path,
+		Name:   path,
+		Status: "ok",
 	}
 	uep.Files = append(uep.Files, file)
 
@@ -133,7 +134,9 @@ func (d *daemon) Diff() {
 		eps, _ := d.differ.Diff(ush, gsh)
 		for _, ep := range eps {
 			log.Infof(">> Marking %s S%02dE%02d for download", gsh.Title, ep.Season, ep.Number)
-			d.queue.Add(ep, &minutes.UserFile{})
+			d.queue.Add(ep, &minutes.UserFile{
+				Status: "pending",
+			})
 		}
 	}
 }
