@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"os"
 
 	minutes "github.com/42minutes/go-42minutes"
@@ -9,7 +8,6 @@ import (
 	"github.com/dancannon/gorethink"
 	"github.com/kataras/iris"
 	logging "github.com/op/go-logging"
-	"golang.org/x/oauth2"
 )
 
 var log = logging.MustGetLogger("standalone")
@@ -153,26 +151,27 @@ func main() {
 		os.Exit(1)
 	}
 
-	log.Info("Getting trakt tokens.")
-	oac := &oauth2.Config{
-		ClientID:     cfg.Trakt.ClientID,
-		ClientSecret: cfg.Trakt.ClientSecret,
-		Scopes:       []string{},
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://api.trakt.tv/oauth/authorize",
-			TokenURL: "https://api.trakt.tv/oauth/token",
-		},
-	}
+	// TODO(geoah) We don't seem to need trakt.tv auth right now
+	// we can just provide the client_id and be done with it. #30
 
-	ctx := context.Background()
-	tok := newOAuthToken(ctx, oac)
-
-	log.Info("Got trakt access refresh tokens.", tok.AccessToken, tok.RefreshToken)
+	// log.Info("Getting trakt tokens.")
+	// oac := &oauth2.Config{
+	// 	ClientID:     cfg.Trakt.ClientID,
+	// 	ClientSecret: cfg.Trakt.ClientSecret,
+	// 	Scopes:       []string{},
+	// 	Endpoint: oauth2.Endpoint{
+	// 		AuthURL:  "https://api.trakt.tv/oauth/authorize",
+	// 		TokenURL: "https://api.trakt.tv/oauth/token",
+	// 	},
+	// }
+	// ctx := context.Background()
+	// tok := newOAuthToken(ctx, oac)
+	// log.Info("Got trakt access refresh tokens.", tok.AccessToken, tok.RefreshToken)
 
 	// trakt.tv client
 	trkt := trakt.NewClient(
 		cfg.Trakt.ClientID,
-		trakt.TokenAuth{AccessToken: tok.AccessToken},
+		trakt.TokenAuth{AccessToken: ""},
 	)
 
 	// global ro trakt library

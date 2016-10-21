@@ -6,6 +6,7 @@ type SimpleDiff struct {
 	glibrary ShowLibrary
 }
 
+// NewSimpleDiff -
 func NewSimpleDiff(ulib UserLibrary, glib ShowLibrary) *SimpleDiff {
 	return &SimpleDiff{
 		ulibrary: ulib,
