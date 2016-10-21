@@ -128,13 +128,13 @@ func (api *API) HandleEpisode(ctx *iris.Context) {
 	rep := &UserEpisode{}
 	gep, _ := api.glibrary.GetEpisode(sid, sen, epn)
 	// TODO(geoah) Handle error
-	rep.MergeInPlace(gep)
-	uep, err := api.glibrary.GetEpisode(sid, sen, epn)
+	uep, err := api.ulibrary.GetEpisode(sid, sen, epn)
 	if err != nil && err != ErrNotFound {
 		log.Error("Could not get ulib episode %s %d %d", sid, sen, epn)
 		// TODO(geoah) Handle error
 	} else if err != ErrNotFound {
-		rep.MergeInPlace(uep)
+		rep = uep
 	}
+	rep.MergeInPlace(gep)
 	ctx.JSON(iris.StatusOK, rep)
 }
