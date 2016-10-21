@@ -1,7 +1,6 @@
 {
     "trakt": {
-        "client_id": "",
-        "client_secret": ""
+        "client_id": "1a58aa79cfb7137c612a064e2730a46ed2e5775014db2610a0d63ce8fec6d739"
     },
     "rethinkdb": {
         "address": "localhost",
