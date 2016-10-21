@@ -151,23 +151,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// TODO(geoah) We don't seem to need trakt.tv auth right now
-	// we can just provide the client_id and be done with it. #30
-
-	// log.Info("Getting trakt tokens.")
-	// oac := &oauth2.Config{
-	// 	ClientID:     cfg.Trakt.ClientID,
-	// 	ClientSecret: cfg.Trakt.ClientSecret,
-	// 	Scopes:       []string{},
-	// 	Endpoint: oauth2.Endpoint{
-	// 		AuthURL:  "https://api.trakt.tv/oauth/authorize",
-	// 		TokenURL: "https://api.trakt.tv/oauth/token",
-	// 	},
-	// }
-	// ctx := context.Background()
-	// tok := newOAuthToken(ctx, oac)
-	// log.Info("Got trakt access refresh tokens.", tok.AccessToken, tok.RefreshToken)
-
 	// trakt.tv client
 	trkt := trakt.NewClient(
 		cfg.Trakt.ClientID,
