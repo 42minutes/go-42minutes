@@ -1,13 +1,176 @@
 FORMAT: 1A
 HOST: http://localhost:8081/
 
-# 42minutes 
+# 42minutes
 
-User library
+HTTP API for the standalone version of 42minutes.
+
+## Description
+
+__Note:__ *The API is currently single user and does not require any kind of authentication.*
+
+This API is meant to provide clients and UIs with an overview of shows, seasons, and episodes
+that are both present and missing from the user's library.
+
+## Shows
+
+Tv shows that the user has added manually to the library, or that have been added automatically
+by clients watching their tv shows folders.
+
+For each of the shows, it will return all seasons, and all episodes whether the user actually has
+them in their library or not. This is to allow the user to understand what exactly they are missing.
+
+Resource is idempotent, trying to add a show that already exists will return `200`.
+
+## Seasons
+
+All seasons of a specific show.
+
+## Episodes
+
+All episodes of a specific show and season.
+
+The episodes that exist in the user's library include a `files` array with one or more items.
+
+Each file item describes a video file that matches that episode as users might have more than 
+one versions of the same episode. eg. Multiple qualities, proper/repacks, etc.
 
 ## Shows Collection [/shows]
 
 ### List All Shows [GET]
+
++ Response 200 (application/json)
+
+        [
+            {
+              "id": "99718",
+              "aired_episodes": 3,
+              "airs": {
+                "day": "Sunday",
+                "time": "21:00",
+                "timezone": "America\/New_York"
+              },
+              "country": "us",
+              "first_aired": "2016-10-02T07:00:00.000Z",
+              "genres": [
+                "western",
+                "science-fiction",
+                "thriller"
+              ],
+              "ids": {
+                "imdb": "tt0475784",
+                "slug": "westworld",
+                "tmdb": 63247,
+                "trakt": 99718,
+                "tvdb": 296762,
+                "tvrage": 37537
+              },
+              "images": {
+                "banner": {
+                  "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/banners\/original\/e93ecbbd52.jpg"
+                },
+                "clearart": {
+                  "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/cleararts\/original\/ba7abf8975.png"
+                },
+                "fanart": {
+                  "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/fanarts\/medium\/2ed2c4e7b1.jpg",
+                  "medium": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/fanarts\/medium\/2ed2c4e7b1.jpg",
+                  "thumb": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/fanarts\/thumb\/2ed2c4e7b1.jpg"
+                },
+                "logo": {
+                  "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/logos\/original\/63d82ff1be.png"
+                },
+                "poster": {
+                  "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/posters\/medium\/a1037bff3e.jpg",
+                  "medium": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/posters\/medium\/a1037bff3e.jpg",
+                  "thumb": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/posters\/thumb\/a1037bff3e.jpg"
+                },
+                "thumb": {
+                  "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/thumbs\/original\/72b791305b.jpg"
+                }
+              },
+              "language": "en",
+              "network": "HBO",
+              "overview": "Westworld is a dark odyssey about the dawn of artificial consciousness and the evolution of sin...",
+              "rating": 8.79032,
+              "runtime": 60,
+              "status": "returning series",
+              "title": "Westworld",
+              "year": 2016
+            }
+        ]
+        
+### Add Show to Library [POST]
+
++ Request (application/json)
+
+        {
+          "id": "99718"
+        }
+
++ Response 200 (application/json)
+
+        {
+          "id": "99718",
+          "aired_episodes": 3,
+          "airs": {
+            "day": "Sunday",
+            "time": "21:00",
+            "timezone": "America\/New_York"
+          },
+          "country": "us",
+          "first_aired": "2016-10-02T07:00:00.000Z",
+          "genres": [
+            "western",
+            "science-fiction",
+            "thriller"
+          ],
+          "ids": {
+            "imdb": "tt0475784",
+            "slug": "westworld",
+            "tmdb": 63247,
+            "trakt": 99718,
+            "tvdb": 296762,
+            "tvrage": 37537
+          },
+          "images": {
+            "banner": {
+              "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/banners\/original\/e93ecbbd52.jpg"
+            },
+            "clearart": {
+              "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/cleararts\/original\/ba7abf8975.png"
+            },
+            "fanart": {
+              "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/fanarts\/medium\/2ed2c4e7b1.jpg",
+              "medium": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/fanarts\/medium\/2ed2c4e7b1.jpg",
+              "thumb": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/fanarts\/thumb\/2ed2c4e7b1.jpg"
+            },
+            "logo": {
+              "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/logos\/original\/63d82ff1be.png"
+            },
+            "poster": {
+              "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/posters\/medium\/a1037bff3e.jpg",
+              "medium": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/posters\/medium\/a1037bff3e.jpg",
+              "thumb": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/posters\/thumb\/a1037bff3e.jpg"
+            },
+            "thumb": {
+              "full": "https:\/\/walter.trakt.us\/images\/shows\/000\/099\/718\/thumbs\/original\/72b791305b.jpg"
+            }
+          },
+          "language": "en",
+          "network": "HBO",
+          "overview": "Westworld is a dark odyssey about the dawn of artificial consciousness and the evolution of sin...",
+          "rating": 8.79032,
+          "runtime": 60,
+          "status": "returning series",
+          "title": "Westworld",
+          "year": 2016
+        }
+        
+### Search Shows [GET /shows?query={query}]
+
++ Parameters
+    + query (string) - Partial show title
 
 + Response 200 (application/json)
 
