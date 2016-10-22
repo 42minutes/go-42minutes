@@ -53,13 +53,9 @@ r.db('library').table('episodes').indexCreate('show_id');
 ```
 
 You can now copy the `cmd/standalone/config-sample.json` as `cmd/standalone/config.json`
-and modify it to match your settings. You will need Trakt.tv app id and secret.
+and modify it to match your settings. Trakt.tv client id can be left to the default.
 
 Now you can compile and run the standalone client by `cd cmd/stadalone && go run *.go`.
-
-The first time you will need to connect to your Trakt.tv account, a page will either pop
-up or you will need to copy/paste the auth URL. Once you authorize the app, you can close 
-the browser window and return to your terminal.
 
 You will be presented with a promt `>>>` where you can now try any of the
 available commands.
