@@ -22,15 +22,45 @@ func NewAPI(glib ShowLibrary, ulib UserLibrary) *API {
 
 // HandleShows -
 func (api *API) HandleShows(ctx *iris.Context) {
-	ushs, _ := api.ulibrary.GetShows()
-	// TODO(geoah) Handle error
-	for i := 0; i < len(ushs); i++ {
-		gsh, err := api.glibrary.GetShow(ushs[i].ID)
+	qr := ctx.URLParam("title")
+	log.Debug("qr", qr)
+	if qr == "" {
+		ushs, err := api.ulibrary.GetShows()
+		if err != nil {
+			log.Error("Could not get ulib shows", err)
+			ctx.EmitError(iris.StatusInternalServerError)
+			return
+		}
+		for i := 0; i < len(ushs); i++ {
+			gsh, err := api.glibrary.GetShow(ushs[i].ID)
+			if err != nil {
+				log.Error("Could not get glib show %s", ushs[i].ID)
+				ctx.EmitError(iris.StatusInternalServerError)
+				return
+			}
+			ushs[i].MergeInPlace(gsh)
+		}
+		ctx.JSON(iris.StatusOK, ushs)
+		return
+	}
+
+	gshs, err := api.glibrary.QueryShowsByTitle(qr)
+	if err != nil {
+		ctx.EmitError(iris.StatusInternalServerError)
+		return
+	}
+	ushs := []*UserShow{}
+	for i := 0; i < len(gshs); i++ {
+		gsh, err := api.glibrary.GetShow(gshs[i].ID)
+		log.Info(gsh)
 		if err != nil {
 			log.Error("Could not get glib show %s", ushs[i].ID)
-			// TODO(geoah) Handle error
+			ctx.EmitError(iris.StatusInternalServerError)
+			return
 		}
-		ushs[i].MergeInPlace(gsh)
+		ush := &UserShow{}
+		ush.MergeInPlace(gsh)
+		ushs = append(ushs, ush)
 	}
 	ctx.JSON(iris.StatusOK, ushs)
 }
@@ -46,6 +76,54 @@ func (api *API) HandleShow(ctx *iris.Context) {
 		// TODO(geoah) Handle error
 	}
 	ush.MergeInPlace(gsh)
+	ctx.JSON(iris.StatusOK, ush)
+}
+
+type reqShowPost struct {
+	ID string `json:"id"`
+}
+
+// HandleShowPost -
+func (api *API) HandleShowPost(ctx *iris.Context) {
+	shr := &reqShowPost{}
+	if err := ctx.ReadJSON(shr); err != nil {
+		ctx.EmitError(iris.StatusBadRequest)
+		return
+	}
+
+	ctx.Params = iris.PathParameters{
+		iris.PathParameter{
+			Key:   "show_id",
+			Value: shr.ID,
+		},
+	}
+
+	ush, err := api.ulibrary.GetShow(shr.ID)
+	if err != nil {
+		if err != ErrNotFound {
+			ctx.EmitError(iris.StatusInternalServerError)
+			return
+		}
+	} else if ush != nil {
+		api.HandleShow(ctx)
+		return
+	}
+
+	ush = &UserShow{}
+
+	gsh, err := api.glibrary.GetShow(shr.ID)
+	if err != nil {
+		ctx.EmitError(iris.StatusInternalServerError)
+		return
+	}
+
+	ush.MergeInPlace(gsh)
+
+	if err := api.ulibrary.UpsertShow(ush); err != nil {
+		ctx.EmitError(iris.StatusInternalServerError)
+		return
+	}
+
 	ctx.JSON(iris.StatusOK, ush)
 }
 

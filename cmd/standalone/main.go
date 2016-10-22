@@ -211,6 +211,7 @@ func main() {
 	// start http server
 	app := iris.New()
 	app.Get("/shows", api.HandleShows)
+	app.Post("/shows", api.HandleShowPost)
 	app.Get("/shows/:show_id", api.HandleShow)
 	app.Get("/shows/:show_id/seasons", api.HandleSeasons)
 	app.Get("/shows/:show_id/seasons/:season", api.HandleSeason)
