@@ -29,6 +29,11 @@ The standalone client should be able to
     default to config value)
   * `diff` - runs diff to find missing episodes
 
+### HTTP API
+
+The standalone client comes with an HTTP API for managing the user library.  
+More info on the [42minutes HTTP API docs](http://docs.42minutes.apiary.io).
+
 ### Getting started
 
 Go vendor doesn't work right now (issue #22), feel free to `go get ./...`
