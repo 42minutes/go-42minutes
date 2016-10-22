@@ -209,13 +209,17 @@ func (l *RethinkUserLibrary) get(tbl, id string, doc interface{}) error {
 
 // QueryEpisodesForFinder -
 func (l *RethinkUserLibrary) QueryEpisodesForFinder() ([]*UserEpisode, error) {
-	res, err := rethink.Table(tableEpisodes).Filter(
-		rethink.And(
-			rethink.Row.Field("downloaded").Eq(false),
-			rethink.Row.Field("retry_time").Le(time.Now().UTC().Unix()),
-			rethink.Row.Field("infohash").Eq(""),
-		),
-	).Run(l.rethinkdb)
+	fl := func(ep rethink.Term) interface{} {
+		return ep.Field("files").Contains(func(file rethink.Term) interface{} {
+			return rethink.And(
+				file.Field("status").Eq("pending"),
+				file.Field("retry_time").Le(time.Now().UTC().Unix()),
+				file.Field("infohash").Eq(""),
+			)
+		})
+	}
+	res, err := rethink.Table(tableEpisodes).Filter(fl).Run(l.rethinkdb)
+
 	if err != nil {
 		return nil, ErrInternalServer
 	}
@@ -233,13 +237,17 @@ func (l *RethinkUserLibrary) QueryEpisodesForFinder() ([]*UserEpisode, error) {
 
 // QueryEpisodesForDownloader -
 func (l *RethinkUserLibrary) QueryEpisodesForDownloader() ([]*UserEpisode, error) {
-	res, err := rethink.Table(tableEpisodes).Filter(
-		rethink.And(
-			rethink.Row.Field("downloaded").Eq(false),
-			rethink.Row.Field("retry_time").Le(time.Now().UTC().Unix()),
-			rethink.Row.Field("infohash").Ne(""),
-		),
-	).Run(l.rethinkdb)
+	fl := func(ep rethink.Term) interface{} {
+		return ep.Field("files").Contains(func(file rethink.Term) interface{} {
+			return rethink.And(
+				file.Field("status").Eq("found"),
+				file.Field("retry_time").Le(time.Now().UTC().Unix()),
+				file.Field("infohash").Ne(""),
+			)
+		})
+	}
+	res, err := rethink.Table(tableEpisodes).Filter(fl).Run(l.rethinkdb)
+
 	if err != nil {
 		return nil, ErrInternalServer
 	}

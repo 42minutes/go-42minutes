@@ -1,14 +1,13 @@
 package main
 
 import (
-	"context"
 	"os"
 
 	minutes "github.com/42minutes/go-42minutes"
 	trakt "github.com/42minutes/go-trakt"
 	"github.com/dancannon/gorethink"
+	"github.com/kataras/iris"
 	logging "github.com/op/go-logging"
-	"golang.org/x/oauth2"
 )
 
 var log = logging.MustGetLogger("standalone")
@@ -83,31 +82,42 @@ func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, p
 		return
 	}
 
-	_, err = d.ulibrary.GetEpisode(sh.ID, ep.Season, ep.Number)
-	// else add or update season
-	if err == minutes.ErrNotFound {
-		gep, _ := d.glibrary.GetEpisode(sh.ID, ep.Season, ep.Number)
-		uep := &minutes.UserEpisode{
-			ShowID:     sh.ID,
-			Season:     se.Number,
-			Number:     gep.Number,
-			Downloaded: true,
-		}
-		_, err := d.ulibrary.GetEpisode(uep.ShowID, uep.Season, uep.Number)
-		if err != nil && err != minutes.ErrNotFound {
-			log.Error("Could not get episode from user's library", err)
-			return
-		}
-		if err := d.ulibrary.UpsertEpisode(uep); err != nil {
-			log.Error("Could not persist episode in ulib", err)
-			return
-		}
-		log.Infof(">> Added '%s' S%02dE%02d to user's library", sh.Title, ep.Season, ep.Number)
-	} else if err != nil && err != minutes.ErrNotFound {
+	// else add or update episode
+	uep, err := d.ulibrary.GetEpisode(sh.ID, ep.Season, ep.Number)
+	if err != nil && err != minutes.ErrNotFound {
 		log.Error("An error occured trying to get season from user library", err)
-	} else {
-		log.Info("Episode already exists in user's library")
+		return
+	} else if err == minutes.ErrNotFound {
+		gep, _ := d.glibrary.GetEpisode(sh.ID, ep.Season, ep.Number)
+		uep = &minutes.UserEpisode{
+			ShowID: sh.ID,
+			Season: se.Number,
+			Number: ep.Number,
+			Files:  []*minutes.UserFile{},
+		}
+		uep.MergeInPlace(gep)
 	}
+
+	for _, ufile := range uep.Files {
+		// TODO(geoah) Check CRC32
+		// TODO(geoah) Split path
+		if ufile.Name == path {
+			log.Info("Episode already exists in user's library")
+			return
+		}
+	}
+
+	file := &minutes.UserFile{
+		Name:   path,
+		Status: "ok",
+	}
+	uep.Files = append(uep.Files, file)
+
+	if err := d.ulibrary.UpsertEpisode(uep); err != nil {
+		log.Error("Could not persist episode in ulib", err)
+		return
+	}
+	log.Infof(">> Added '%s' S%02dE%02d to user's library", sh.Title, ep.Season, ep.Number)
 }
 
 // Diff will attempt to figure out which episodes are missing from
@@ -121,9 +131,10 @@ func (d *daemon) Diff() {
 		gsh, _ := d.glibrary.GetShow(ush.ID)
 		eps, _ := d.differ.Diff(ush, gsh)
 		for _, ep := range eps {
-			log.Infof(">> Marking %s S%02dE%02d for download", gsh.Title,
-				ep.Season, ep.Number)
-			d.queue.Add(ep)
+			log.Infof(">> Marking %s S%02dE%02d for download", gsh.Title, ep.Season, ep.Number)
+			d.queue.Add(ep, &minutes.UserFile{
+				Status: "pending",
+			})
 		}
 	}
 }
@@ -140,26 +151,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	log.Info("Getting trakt tokens.")
-	oac := &oauth2.Config{
-		ClientID:     cfg.Trakt.ClientID,
-		ClientSecret: cfg.Trakt.ClientSecret,
-		Scopes:       []string{},
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://api.trakt.tv/oauth/authorize",
-			TokenURL: "https://api.trakt.tv/oauth/token",
-		},
-	}
-
-	ctx := context.Background()
-	tok := newOAuthToken(ctx, oac)
-
-	log.Info("Got trakt access refresh tokens.", tok.AccessToken, tok.RefreshToken)
-
 	// trakt.tv client
 	trkt := trakt.NewClient(
 		cfg.Trakt.ClientID,
-		trakt.TokenAuth{AccessToken: tok.AccessToken},
+		trakt.TokenAuth{AccessToken: ""},
 	)
 
 	// global ro trakt library
@@ -209,6 +204,20 @@ func main() {
 
 	// start processing the queue
 	qu.Process()
+
+	// create api for http
+	api := minutes.NewAPI(glib, ulib)
+
+	// start http server
+	app := iris.New()
+	app.Get("/shows", api.HandleShows)
+	app.Post("/shows", api.HandleShowPost)
+	app.Get("/shows/:show_id", api.HandleShow)
+	app.Get("/shows/:show_id/seasons", api.HandleSeasons)
+	app.Get("/shows/:show_id/seasons/:season", api.HandleSeason)
+	app.Get("/shows/:show_id/seasons/:season/episodes", api.HandleEpisodes)
+	app.Get("/shows/:show_id/seasons/:season/episodes/:episode", api.HandleEpisode)
+	go app.Listen(":8081") // TODO(geoah) Make port configurable
 
 	// start shell
 	daem.startShell()
