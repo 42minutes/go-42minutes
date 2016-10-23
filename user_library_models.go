@@ -79,7 +79,7 @@ func (sh *UserShow) GetCID() interface{} {
 
 // UserSeason struct
 type UserSeason struct {
-	ShowID       string `json:"show_id" gorethink:"show_id"`
+	ShowID       string `json:"show_id" gorethink:"show_id" gorm:"-"`
 	EpisodeCount int    `json:"episode_count" gorethink:"-"`
 	IDs          struct {
 		Tmdb   int `json:"tmdb" gorethink:"-"`
@@ -146,7 +146,7 @@ type UserEpisode struct {
 	UpdatedAt string  `json:"updated_at" gorethink:"-"`
 	Votes     int     `json:"-" gorethink:"-"`
 
-	CID   []interface{} `json:"-" gorethink:"id"`
+	CID   []interface{} `json:"-" gorethink:"id" gorm:"-"`
 	Files []*UserFile   `json:"files" gorethink:"files"`
 }
 
