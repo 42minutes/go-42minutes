@@ -15,7 +15,7 @@ func (e *UserShow) GetCID() interface{} {
 
 // UserSeason struct
 type UserSeason struct {
-	CID    []interface{} `gorethink:"id"`
+	CID    []interface{} `gorethink:"id" gorm:"-"`
 	ShowID string        `json:"show_id" gorethink:"show_id"`
 	Number int           `json:"number" gorethink:"number"`
 }
@@ -30,14 +30,14 @@ func (e *UserSeason) GetCID() []interface{} {
 
 // UserEpisode struct
 type UserEpisode struct {
-	CID           []interface{} `gorethink:"id"`
+	CID           []interface{} `gorethink:"id" gorm:"-"`
 	ShowID        string        `json:"show_id" gorethink:"show_id"`
 	Season        int           `json:"season" gorethink:"season"`
 	Number        int           `json:"number" gorethink:"number"`
 	Title         string        `json:"title" gorethink:"title,omitempty"`
 	Infohash      string        `gorethink:"infohash"`
 	Downloaded    bool          `gorethink:"downloaded"`
-	RetryDatetime int64         `gorethink:"retry_time"`
+	RetryDatetime int64         `gorethink:"retry_time" gorm:"column:retry_time"`
 }
 
 // String -
