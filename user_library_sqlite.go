@@ -37,7 +37,11 @@ func NewSqliteUserLibrary(DBDir string) *SqliteUserLibrary {
 			log.Error("Could not create table.", err)
 		}
 	}
-
+	if db.HasTable(UserFile{}) == false {
+		if err := db.CreateTable(UserFile{}).Error; err != nil {
+			log.Error("Could not create table.", err)
+		}
+	}
 	return &SqliteUserLibrary{
 		databaseDir: DBDir,
 		db:          db,
@@ -61,7 +65,7 @@ func (squl *SqliteUserLibrary) UpsertShow(show *UserShow) error {
 		return ErrInternalServer
 	}
 
-	if err := squl.db.Model(ush).Update(show).Error; err != nil {
+	if err := squl.db.Model(&ush).Update(show).Error; err != nil {
 		return ErrInternalServer
 	}
 	return nil
@@ -88,7 +92,7 @@ func (squl *SqliteUserLibrary) UpsertSeason(season *UserSeason) error {
 		return ErrInternalServer
 	}
 
-	if err := squl.db.Model(useas).Update(season).Error; err != nil {
+	if err := squl.db.Model(&useas).Update(season).Error; err != nil {
 		return ErrInternalServer
 	}
 	return nil
@@ -98,6 +102,7 @@ func (squl *SqliteUserLibrary) UpsertSeason(season *UserSeason) error {
 // or errors with ErrNotImplemented, or ErrInternalServer, ErrMissingShow
 // or ErrMissingSeason
 func (squl *SqliteUserLibrary) UpsertEpisode(episode *UserEpisode) error {
+
 	usep := UserEpisode{}
 	err := squl.db.Where(
 		"show_id = ? AND season = ? AND number = ?",
@@ -108,13 +113,21 @@ func (squl *SqliteUserLibrary) UpsertEpisode(episode *UserEpisode) error {
 		if err := squl.db.Create(episode).Error; err != nil {
 			return ErrInternalServer
 		}
+		if err := squl.upsertFiles(episode); err != nil {
+			return ErrInternalServer
+		}
+
 		return nil
 	}
 
 	if err != nil {
 		return ErrInternalServer
 	}
-	if err = squl.db.Model(usep).Update(episode).Error; err != nil {
+
+	if err = squl.db.Model(&usep).Updates(episode).Error; err != nil {
+		return ErrInternalServer
+	}
+	if err := squl.upsertFiles(episode); err != nil {
 		return ErrInternalServer
 	}
 	return nil
@@ -227,32 +240,93 @@ func (squl *SqliteUserLibrary) QueryShowsByTitle(title string) ([]*UserShow, err
 
 // QueryEpisodesForFinder
 func (squl *SqliteUserLibrary) QueryEpisodesForFinder() ([]*UserEpisode, error) {
+	usfs := []*UserFile{}
 	useps := []*UserEpisode{}
 	err := squl.db.Where(
-		"downloaded = 0 AND retry_time < ? and infohash = ''",
+		"status = ? AND retry_time < ? and infohash = ''",
+		"pending",
 		time.Now().UTC().Unix(),
-	).Find(&useps).Error
+	).Find(&usfs).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, ErrNotFound
 	}
 	if err != nil {
 		return nil, ErrInternalServer
+	}
+
+	for _, file := range usfs {
+		usep := UserEpisode{}
+
+		squl.db.Where(
+			"show_id = ? AND season = ? AND number = ?",
+			file.ShowID, file.Season, file.Episode,
+		).Find(&usep)
+
+		if err != nil {
+			return nil, ErrInternalServer
+		}
+		usep.Files = append(usep.Files, file)
+		useps = append(useps, &usep)
 	}
 	return useps, nil
 }
 
 // QueryEpisodesForDownloader
 func (squl *SqliteUserLibrary) QueryEpisodesForDownloader() ([]*UserEpisode, error) {
+	usfs := []*UserFile{}
 	useps := []*UserEpisode{}
 	err := squl.db.Where(
-		"downloaded = 0 AND retry_time < ? and infohash <> ''",
+		"status = ? AND retry_time < ? and infohash <> ''",
+		"found",
 		time.Now().UTC().Unix(),
-	).Find(&useps).Error
+	).Find(&usfs).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, ErrNotFound
 	}
 	if err != nil {
 		return nil, ErrInternalServer
 	}
+
+	for _, file := range usfs {
+		usep := UserEpisode{}
+
+		squl.db.Where(
+			"show_id = ? AND season = ? AND number = ?",
+			file.ShowID, file.Season, file.Episode,
+		).Find(&usep)
+
+		if err != nil {
+			return nil, ErrInternalServer
+		}
+		usep.Files = append(usep.Files, file)
+		useps = append(useps, &usep)
+	}
 	return useps, nil
+}
+
+func (squl *SqliteUserLibrary) upsertFiles(episode *UserEpisode) error {
+	for _, file := range episode.Files {
+		usf := UserFile{}
+		file.ShowID = episode.ShowID
+		file.Season = episode.Season
+		file.Episode = episode.Number
+		// search files
+		err := squl.db.Where(
+			"show_id = ? AND season = ? AND episode = ? AND ID",
+			file.ShowID, file.Season, file.Episode, file.ID,
+		).Find(&usf).Error
+		if err == gorm.ErrRecordNotFound {
+			if err := squl.db.Create(file).Error; err != nil {
+				log.Error(err)
+				return ErrInternalServer
+			}
+		}
+
+		if err := squl.db.Model(&usf).Updates(file).Error; err != nil {
+			log.Error(err)
+			return ErrInternalServer
+		}
+
+	}
+	return nil
 }
