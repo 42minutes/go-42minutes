@@ -166,7 +166,8 @@ func main() {
 	})
 
 	// user rw library for single hardcoded user id
-	ulib := minutes.NewUserLibrary(redb, "me")
+	ulib := minutes.NewSqliteUserLibrary("data.db")
+	defer ulib.Close()
 
 	// torrent finder
 	fndr := &minutes.TorrentFinder{}

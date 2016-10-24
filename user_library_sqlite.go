@@ -305,28 +305,28 @@ func (squl *SqliteUserLibrary) QueryEpisodesForDownloader() ([]*UserEpisode, err
 }
 
 func (squl *SqliteUserLibrary) upsertFiles(episode *UserEpisode) error {
+	squl.db.Where(
+		"show_id = ? AND season = ? AND episode = ?",
+		episode.ShowID, episode.Season, episode.Number,
+	).Delete(UserFile{})
+
 	for _, file := range episode.Files {
-		usf := UserFile{}
 		file.ShowID = episode.ShowID
 		file.Season = episode.Season
 		file.Episode = episode.Number
-		// search files
-		err := squl.db.Where(
-			"show_id = ? AND season = ? AND episode = ? AND ID",
-			file.ShowID, file.Season, file.Episode, file.ID,
-		).Find(&usf).Error
-		if err == gorm.ErrRecordNotFound {
-			if err := squl.db.Create(file).Error; err != nil {
-				log.Error(err)
-				return ErrInternalServer
-			}
-		}
-
-		if err := squl.db.Model(&usf).Updates(file).Error; err != nil {
+		if err := squl.db.Create(file).Error; err != nil {
 			log.Error(err)
 			return ErrInternalServer
 		}
 
+	}
+	return nil
+}
+
+func (squl *SqliteUserLibrary) Close() error {
+	err := squl.db.Close().Error
+	if err != nil {
+		return ErrInternalServer
 	}
 	return nil
 }
