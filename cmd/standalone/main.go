@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-
 	minutes "github.com/42minutes/go-42minutes"
 	trakt "github.com/42minutes/go-trakt"
 	"github.com/dancannon/gorethink"
@@ -147,8 +145,7 @@ func main() {
 	log.Info("Reading config file.")
 	cfg, err := loadConfig("./config.json")
 	if err != nil {
-		log.Info("Could not load config file.", err)
-		os.Exit(1)
+		log.Fatal("Could not load config file.", err)
 	}
 
 	// trakt.tv client
@@ -166,7 +163,10 @@ func main() {
 	})
 
 	// user rw library for single hardcoded user id
-	ulib := minutes.NewSqliteUserLibrary("data.db")
+	ulib, err := minutes.NewSqliteUserLibrary("data.db")
+	if err != nil {
+		log.Fatal("Could not init SQLite", err)
+	}
 	defer ulib.Close()
 
 	// torrent finder

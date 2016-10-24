@@ -10,42 +10,40 @@ import (
 
 // SqliteUserLibrary is a read-write user-specific library
 type SqliteUserLibrary struct {
-	databaseDir string
-	db          *gorm.DB
+	db *gorm.DB
 }
 
 // NewSqliteUserLibrary accepts the database directory name and
 // returns a new SqliteUserLibrary instance
-func NewSqliteUserLibrary(dbDir string) *SqliteUserLibrary {
+func NewSqliteUserLibrary(dbDir string) (*SqliteUserLibrary, error) {
 	db, err := gorm.Open("sqlite3", dbDir)
 	if err != nil {
-		log.Error(err)
+		return nil, err
 	}
 
 	if db.HasTable(UserShow{}) == false {
 		if err := db.CreateTable(UserShow{}).Error; err != nil {
-			log.Error("Could not create table.", err)
+			return nil, err
 		}
 	}
 	if db.HasTable(UserSeason{}) == false {
 		if err := db.CreateTable(UserSeason{}).Error; err != nil {
-			log.Error("Could not create table.", err)
+			return nil, err
 		}
 	}
 	if db.HasTable(UserEpisode{}) == false {
 		if err := db.CreateTable(UserEpisode{}).Error; err != nil {
-			log.Error("Could not create table.", err)
+			return nil, err
 		}
 	}
 	if db.HasTable(UserFile{}) == false {
 		if err := db.CreateTable(UserFile{}).Error; err != nil {
-			log.Error("Could not create table.", err)
+			return nil, err
 		}
 	}
 	return &SqliteUserLibrary{
-		databaseDir: dbDir,
-		db:          db,
-	}
+		db: db,
+	}, nil
 }
 
 // UpsertShow adds a new show
@@ -313,7 +311,6 @@ func (squl *SqliteUserLibrary) upsertFiles(episode *UserEpisode) error {
 		file.Season = episode.Season
 		file.Episode = episode.Number
 		if err := squl.db.Create(file).Error; err != nil {
-			log.Error(err)
 			return ErrInternalServer
 		}
 
