@@ -16,8 +16,8 @@ type SqliteUserLibrary struct {
 
 // NewSqliteUserLibrary accepts the database directory name and
 // returns a new SqliteUserLibrary instance
-func NewSqliteUserLibrary(DBDir string) *SqliteUserLibrary {
-	db, err := gorm.Open("sqlite3", DBDir)
+func NewSqliteUserLibrary(dbDir string) *SqliteUserLibrary {
+	db, err := gorm.Open("sqlite3", dbDir)
 	if err != nil {
 		log.Error(err)
 	}
@@ -43,7 +43,7 @@ func NewSqliteUserLibrary(DBDir string) *SqliteUserLibrary {
 		}
 	}
 	return &SqliteUserLibrary{
-		databaseDir: DBDir,
+		databaseDir: dbDir,
 		db:          db,
 	}
 }
