@@ -8,7 +8,7 @@ import (
 
 // UserShow struct
 type UserShow struct {
-	ID            string `json:"id" gorethink:"id"`
+	ID            string `json:"id" gorethink:"id" gorm:"primary_key"`
 	AiredEpisodes int    `json:"aired_episodes" gorethink:"-" gorm:"-"`
 	Airs          struct {
 		Day      string `json:"day" gorethink:"-" gorm:"-"`
@@ -79,6 +79,7 @@ func (sh *UserShow) GetCID() interface{} {
 
 // UserSeason struct
 type UserSeason struct {
+	ID           uint   `json:"id" gorm:"primary_key"`
 	ShowID       string `json:"show_id" gorethink:"show_id"`
 	EpisodeCount int    `json:"episode_count" gorethink:"-" gorm:"-"`
 	IDs          struct {
@@ -121,6 +122,7 @@ func (se *UserSeason) GetCID() []interface{} {
 
 // UserEpisode struct
 type UserEpisode struct {
+	ID                    uint       `json:"id" gorm:"primary_key"`
 	ShowID                string     `json:"show_id" gorethink:"show_id"`
 	AvailableTranslations []string   `json:"-" gorethink:"-" gorm:"-"`
 	FirstAired            *time.Time `json:"first_aired" gorethink:"-" gorm:"-"`

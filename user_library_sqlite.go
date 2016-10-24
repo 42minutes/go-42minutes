@@ -102,13 +102,11 @@ func (squl *SqliteUserLibrary) UpsertSeason(season *UserSeason) error {
 // or errors with ErrNotImplemented, or ErrInternalServer, ErrMissingShow
 // or ErrMissingSeason
 func (squl *SqliteUserLibrary) UpsertEpisode(episode *UserEpisode) error {
-
 	usep := UserEpisode{}
 	err := squl.db.Where(
 		"show_id = ? AND season = ? AND number = ?",
 		episode.ShowID, episode.Season, episode.Number,
 	).Find(&usep).Error
-
 	if err == gorm.ErrRecordNotFound {
 		if err := squl.db.Create(episode).Error; err != nil {
 			return ErrInternalServer
@@ -257,10 +255,10 @@ func (squl *SqliteUserLibrary) QueryEpisodesForFinder() ([]*UserEpisode, error) 
 	for _, file := range usfs {
 		usep := UserEpisode{}
 
-		squl.db.Where(
+		err := squl.db.Where(
 			"show_id = ? AND season = ? AND number = ?",
 			file.ShowID, file.Season, file.Episode,
-		).Find(&usep)
+		).Find(&usep).Error
 
 		if err != nil {
 			return nil, ErrInternalServer
@@ -290,10 +288,10 @@ func (squl *SqliteUserLibrary) QueryEpisodesForDownloader() ([]*UserEpisode, err
 	for _, file := range usfs {
 		usep := UserEpisode{}
 
-		squl.db.Where(
+		err := squl.db.Where(
 			"show_id = ? AND season = ? AND number = ?",
 			file.ShowID, file.Season, file.Episode,
-		).Find(&usep)
+		).Find(&usep).Error
 
 		if err != nil {
 			return nil, ErrInternalServer
