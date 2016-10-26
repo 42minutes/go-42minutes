@@ -91,13 +91,6 @@ func (api *API) HandleShowPost(ctx *iris.Context) {
 		return
 	}
 
-	ctx.Params = iris.PathParameters{
-		iris.PathParameter{
-			Key:   "show_id",
-			Value: shr.ID,
-		},
-	}
-
 	ush, err := api.ulibrary.GetShow(shr.ID)
 	if err != nil {
 		if err != ErrNotFound {
@@ -105,7 +98,13 @@ func (api *API) HandleShowPost(ctx *iris.Context) {
 			return
 		}
 	} else if ush != nil {
-		api.HandleShow(ctx)
+		gsh, err := api.glibrary.GetShow(shr.ID)
+		if err != nil {
+			log.Error("Could not get glib show %s", shr.ID)
+			// TODO(geoah) Handle error
+		}
+		ush.MergeInPlace(gsh)
+		ctx.JSON(iris.StatusOK, ush)
 		return
 	}
 
