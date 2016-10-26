@@ -1,15 +1,14 @@
 package minutes
 
 import (
-	"os"
+	"fmt"
+	"reflect"
 	"testing"
 
-	rethink "github.com/dancannon/gorethink"
-	suite "github.com/stretchr/testify/suite"
-)
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 
-const (
-	database = "test_library"
+	suite "github.com/stretchr/testify/suite"
 )
 
 var (
@@ -74,63 +73,39 @@ func TestUserLibrarySuite(t *testing.T) {
 
 type UserLibraryPersistenceSuite struct {
 	suite.Suite
-	rethink *rethink.Session
-	library UserLibrary
+	database *gorm.DB
+	library  UserLibrary
 }
 
 func (s *UserLibraryPersistenceSuite) SetupSuite() {
-	host := os.Getenv("RETHINKDB_PORT_28015_TCP_ADDR")
-	if host == "" {
-		host = "localhost"
-	}
-
-	port := os.Getenv("RETHINKDB_PORT_28015_TCP_PORT")
-	if port == "" {
-		port = "28015"
-	}
-
-	re, errConnecting := rethink.Connect(rethink.ConnectOpts{
-		Address:  host + ":" + port,
-		Database: database,
-	})
-
-	if errConnecting != nil {
-		log.Info("Could not connect to db", errConnecting)
-	}
-
-	s.library = &RethinkUserLibrary{
-		rethinkdb: re,
-	}
-
-	s.rethink = re
-
-	rethink.DBDrop(database).Run(s.rethink)
-	rethink.DBCreate(database).Run(s.rethink)
-
-	rethink.DB(database).TableCreate(tableShows).Run(s.rethink)
-	rethink.DB(database).TableCreate(tableSeasons).Run(s.rethink)
-	rethink.DB(database).TableCreate(tableEpisodes).Run(s.rethink)
-
-	rethink.DB(database).Table(tableShows).IndexWait().Exec(s.rethink)
-	rethink.DB(database).Table(tableSeasons).IndexWait().Exec(s.rethink)
-	rethink.DB(database).Table(tableEpisodes).IndexWait().Exec(s.rethink)
-}
-
-func (s *UserLibraryPersistenceSuite) SetupTest() {
-	rethink.DB(database).Table(tableShows).Delete().RunWrite(s.rethink)
-	rethink.DB(database).Table(tableSeasons).Delete().RunWrite(s.rethink)
-	rethink.DB(database).Table(tableEpisodes).Delete().RunWrite(s.rethink)
-}
-
-func (s *UserLibraryPersistenceSuite) count(tbl string) int {
-	cursor, err := rethink.Table(tbl).Count().Run(s.rethink)
+	db, err := gorm.Open("sqlite3", "test_data.db")
 	if err != nil {
 		s.Fail(err.Error())
 	}
-	var cnt int
-	cursor.One(&cnt)
-	cursor.Close()
-	return cnt
+
+	// user rw library for single hardcoded user id
+	ulib, err := NewSqlUserLibrary(db)
+	if err != nil {
+		s.Fail(err.Error())
+	}
+
+	s.database = db
+	s.library = ulib
+}
+
+func (s *UserLibraryPersistenceSuite) SetupTest() {
+
+}
+
+func (s *UserLibraryPersistenceSuite) count(table interface{}) int {
+	tableCount := 0
+	err := s.database.Model(reflect.New(reflect.TypeOf(table)).Interface()).Count(&tableCount).Error
+	if err != nil {
+		log.Error(err)
+		s.Fail(err.Error())
+	}
+	fmt.Println(tableCount)
+	return tableCount
 }
 
 func (s *UserLibraryPersistenceSuite) addShows() {
@@ -139,8 +114,7 @@ func (s *UserLibraryPersistenceSuite) addShows() {
 
 	err = s.library.UpsertShow(s2)
 	s.Nil(err)
-
-	s.Equal(2, s.count(tableShows))
+	s.Equal(2, s.count(UserShow{}))
 }
 
 func (s *UserLibraryPersistenceSuite) addSeasons() {
@@ -156,7 +130,7 @@ func (s *UserLibraryPersistenceSuite) addSeasons() {
 	err = s.library.UpsertSeason(s2s2)
 	s.Nil(err)
 
-	s.Equal(4, s.count(tableSeasons))
+	s.Equal(4, s.count(UserSeason{}))
 }
 
 func (s *UserLibraryPersistenceSuite) addEpisodes() {
@@ -172,17 +146,16 @@ func (s *UserLibraryPersistenceSuite) addEpisodes() {
 	err = s.library.UpsertEpisode(s2s2e2)
 	s.Nil(err)
 
-	s.Equal(4, s.count(tableEpisodes))
+	s.Equal(4, s.count(UserEpisode{}))
 }
 
 func (s *UserLibraryPersistenceSuite) TestUserLibrary_UpsertShow_Success() {
 	s.addShows()
-
 	s1.Title = "show-first-updated"
 	err := s.library.UpsertShow(s1)
 	s.Nil(err)
 
-	s.Equal(2, s.count(tableShows))
+	s.Equal(2, s.count(UserShow{}))
 
 	sh, err := s.library.GetShow(s1.ID)
 	s.ueq(s1, sh)
@@ -195,7 +168,7 @@ func (s *UserLibraryPersistenceSuite) TestUserLibrary_UpsertSeason_Success() {
 	err := s.library.UpsertSeason(s1s2)
 	s.Nil(err)
 
-	s.Equal(4, s.count(tableSeasons))
+	s.Equal(4, s.count(UserSeason{}))
 
 	se, err := s.library.GetSeason(s1s2.ShowID, s1s2.Number)
 	s.ueq(s1s2, se)
@@ -204,7 +177,7 @@ func (s *UserLibraryPersistenceSuite) TestUserLibrary_UpsertSeason_Success() {
 	err = s.library.UpsertSeason(s2s2)
 	s.Nil(err)
 
-	s.Equal(4, s.count(tableSeasons))
+	s.Equal(4, s.count(UserSeason{}))
 
 	se, err = s.library.GetSeason(s2s2.ShowID, s2s2.Number)
 	s.ueq(s2s2, se)
@@ -218,7 +191,7 @@ func (s *UserLibraryPersistenceSuite) TestUserLibrary_UpsertEpisode_Success() {
 	err := s.library.UpsertEpisode(s1s1e3)
 	s.Nil(err)
 
-	s.Equal(4, s.count(tableEpisodes))
+	s.Equal(4, s.count(UserEpisode{}))
 
 	ep, err := s.library.GetEpisode(s1s1e3.ShowID, s1s1e3.Season, s1s1e3.Number)
 	s.ueq(s1s1e3, ep)
@@ -228,7 +201,7 @@ func (s *UserLibraryPersistenceSuite) TestUserLibrary_UpsertEpisode_Success() {
 	err = s.library.UpsertEpisode(s2s2e2)
 	s.Nil(err)
 
-	s.Equal(4, s.count(tableEpisodes))
+	s.Equal(4, s.count(UserEpisode{}))
 
 	ep, err = s.library.GetEpisode(s2s2e2.ShowID, s2s2e2.Season, s2s2e2.Number)
 	s.ueq(s2s2e2, ep)
