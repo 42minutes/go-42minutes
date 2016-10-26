@@ -6,10 +6,10 @@ go:
 addons:
   rethinkdb: "2.3"
 
-install:
-  - go get -u github.com/kardianos/govendor
-  - go get ./...
-  - go get github.com/stretchr/testify
+before_script:
+  - wget https://github.com/Masterminds/glide/releases/download/v0.12.3/glide-v0.12.3-darwin-amd64.tar.gz -O /tmp/glide-v0.12.3-darwin-amd64.tar.gz
+  - tar -xvf /tmp/glide-v0.12.3-darwin-amd64.tar.gz
+  - export PATH=$PATH:$PWD/darwin-amd64/
 
 script:
  - go test -v ./...
