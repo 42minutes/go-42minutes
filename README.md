@@ -36,34 +36,17 @@ More info on the [42minutes HTTP API docs](http://docs.42minutes.apiary.io).
 
 ### Getting started
 
-Go vendor doesn't work right now (issue #22), feel free to `go get ./...`
+Clone the repo, make sure you have [glide](https://github.com/Masterminds/glide),
+do a `glide install` and you are set. The standalone client uses sqlite as its 
+primary storage.
 
-In addition for the time being (issue #19) the client requires rethinkdb to 
-hold the show and library data.
-
-Quickest way is using docker compose via `docker-compose up` from the repo root.
-This will start rethinkdb with `8080`, `28015`, and `29015` bound on your host.
-
-Once your rethink container is up and running you can visit `http://localhost:8080`,
-go to `Data Explorer` and create the required databases and tables.
-* Note: As long as you don't delete your `data` directory you don't have to do this again.
-
-```
-r.dbCreate('library');
-r.db('library').tableCreate('shows');
-r.db('library').tableCreate('seasons');
-r.db('library').table('seasons').indexCreate('show_id');
-r.db('library').tableCreate('episodes');
-r.db('library').table('episodes').indexCreate('show_id');
-```
-
-You can now copy the `cmd/standalone/config-sample.json` as `cmd/standalone/config.json`
+Copy the `cmd/standalone/config-sample.json` as `cmd/standalone/config.json`
 and modify it to match your settings. Trakt.tv client id can be left to the default.
 
-Now you can compile and run the standalone client by `cd cmd/stadalone && go run *.go`.
+You can now run the standalone client by `cd cmd/stadalone && go run *.go`.
 
-You will be presented with a promt `>>>` where you can now try any of the
-available commands.
+The client will start an HTTP API on `http://localhost:8081` and you will be
+presented with a promt `>>>` where you can now try any of the available commands.
 
 At this point you can `watch` to the client can go through your episodes.
 And once this is done, `diff` to find your missing episodes, and their infohashes.
