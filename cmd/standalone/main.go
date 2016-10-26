@@ -187,7 +187,7 @@ func main() {
 	wtch := &minutes.FileWatcher{}
 
 	// queue
-	qu, _ := minutes.NewQueue(redb, fndr, glib, ulib, dwnl)
+	qu, _ := minutes.NewQueue(db, fndr, glib, ulib, dwnl)
 
 	// standalone daemon
 	daem := &daemon{
