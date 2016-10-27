@@ -2,6 +2,7 @@ package minutes
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 
@@ -10,6 +11,8 @@ import (
 
 	suite "github.com/stretchr/testify/suite"
 )
+
+const testDbFile = "test_data.db"
 
 var (
 	// shows
@@ -78,7 +81,7 @@ type UserLibraryPersistenceSuite struct {
 }
 
 func (s *UserLibraryPersistenceSuite) SetupSuite() {
-	db, err := gorm.Open("sqlite3", "test_data.db")
+	db, err := gorm.Open("sqlite3", testDbFile)
 	if err != nil {
 		s.Fail(err.Error())
 	}
@@ -91,6 +94,13 @@ func (s *UserLibraryPersistenceSuite) SetupSuite() {
 
 	s.database = db
 	s.library = ulib
+}
+
+func (s *UserLibraryPersistenceSuite) TearDownAllSuite() {
+	err := os.Remove(testDbFile)
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 func (s *UserLibraryPersistenceSuite) SetupTest() {
