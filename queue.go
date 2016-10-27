@@ -4,28 +4,28 @@ import (
 	"time"
 
 	torrentlookup "github.com/42minutes/go-torrentlookup"
-	rethink "github.com/dancannon/gorethink"
+	"github.com/jinzhu/gorm"
 )
 
 var retryAfterHours = 3
 
 // Queue -
 type Queue struct {
-	rethinkdb *rethink.Session
-	finder    Finder
-	glibrary  ShowLibrary
-	ulibrary  UserLibrary
-	dwnl      Downloader
+	sqldb    *gorm.DB
+	finder   Finder
+	glibrary ShowLibrary
+	ulibrary UserLibrary
+	dwnl     Downloader
 }
 
 // NewQueue -
-func NewQueue(redb *rethink.Session, fndr Finder, glib ShowLibrary, ulib UserLibrary, dwnl Downloader) (*Queue, error) {
+func NewQueue(db *gorm.DB, fndr Finder, glib ShowLibrary, ulib UserLibrary, dwnl Downloader) (*Queue, error) {
 	return &Queue{
-		rethinkdb: redb,
-		finder:    fndr,
-		glibrary:  glib,
-		ulibrary:  ulib,
-		dwnl:      dwnl,
+		sqldb:    db,
+		finder:   fndr,
+		glibrary: glib,
+		ulibrary: ulib,
+		dwnl:     dwnl,
 	}, nil
 }
 

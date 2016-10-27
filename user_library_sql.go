@@ -1,26 +1,20 @@
 package minutes
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
-
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-// SqliteUserLibrary is a read-write user-specific library
-type SqliteUserLibrary struct {
+// SqlUserLibrary is a read-write user-specific library
+type SqlUserLibrary struct {
 	db *gorm.DB
 }
 
-// NewSqliteUserLibrary accepts the database directory name and
-// returns a new SqliteUserLibrary instance
-func NewSqliteUserLibrary(dbDir string) (*SqliteUserLibrary, error) {
-	db, err := gorm.Open("sqlite3", dbDir)
-	if err != nil {
-		return nil, err
-	}
-
+// NewSqlUserLibrary accepts the database directory name and
+// returns a new SqlUserLibrary instance
+func NewSqlUserLibrary(db *gorm.DB) (*SqlUserLibrary, error) {
 	if db.HasTable(UserShow{}) == false {
 		if err := db.CreateTable(UserShow{}).Error; err != nil {
 			return nil, err
@@ -41,17 +35,16 @@ func NewSqliteUserLibrary(dbDir string) (*SqliteUserLibrary, error) {
 			return nil, err
 		}
 	}
-	return &SqliteUserLibrary{
+	return &SqlUserLibrary{
 		db: db,
 	}, nil
 }
 
 // UpsertShow adds a new show
 // or errors with ErrNotImplemented, or ErrInternalServer
-func (squl *SqliteUserLibrary) UpsertShow(show *UserShow) error {
+func (squl *SqlUserLibrary) UpsertShow(show *UserShow) error {
 	ush := UserShow{}
 	err := squl.db.Where("ID = ?", show.ID).Find(&ush).Error
-
 	if err == gorm.ErrRecordNotFound {
 		if err := squl.db.Create(show).Error; err != nil {
 			return ErrInternalServer
@@ -71,7 +64,7 @@ func (squl *SqliteUserLibrary) UpsertShow(show *UserShow) error {
 
 // UpsertSeason adds or updates a season
 // or errors with ErrNotImplemented, or ErrInternalServer, or ErrMissingShow
-func (squl *SqliteUserLibrary) UpsertSeason(season *UserSeason) error {
+func (squl *SqlUserLibrary) UpsertSeason(season *UserSeason) error {
 	useas := UserSeason{}
 	err := squl.db.Where(
 		"show_id = ? AND number = ?",
@@ -99,7 +92,7 @@ func (squl *SqliteUserLibrary) UpsertSeason(season *UserSeason) error {
 // UpsertEpisode adds or updates a episode
 // or errors with ErrNotImplemented, or ErrInternalServer, ErrMissingShow
 // or ErrMissingSeason
-func (squl *SqliteUserLibrary) UpsertEpisode(episode *UserEpisode) error {
+func (squl *SqlUserLibrary) UpsertEpisode(episode *UserEpisode) error {
 	usep := UserEpisode{}
 	err := squl.db.Where(
 		"show_id = ? AND season = ? AND number = ?",
@@ -131,7 +124,7 @@ func (squl *SqliteUserLibrary) UpsertEpisode(episode *UserEpisode) error {
 
 // GetShow returns a UserShow
 // or errors with ErrNotFound, or ErrInternalServer
-func (squl *SqliteUserLibrary) GetShow(showID string) (*UserShow, error) {
+func (squl *SqlUserLibrary) GetShow(showID string) (*UserShow, error) {
 	ush := UserShow{}
 	err := squl.db.Where("ID = ?", showID).Find(&ush).Error
 	if err == gorm.ErrRecordNotFound {
@@ -145,7 +138,7 @@ func (squl *SqliteUserLibrary) GetShow(showID string) (*UserShow, error) {
 
 // GetShows returns all Shows
 // or errors with ErrNotImplemented, or ErrInternalServer
-func (squl *SqliteUserLibrary) GetShows() ([]*UserShow, error) {
+func (squl *SqlUserLibrary) GetShows() ([]*UserShow, error) {
 	ushs := []*UserShow{}
 	err := squl.db.Find(&ushs).Error
 	if err != nil {
@@ -156,7 +149,7 @@ func (squl *SqliteUserLibrary) GetShows() ([]*UserShow, error) {
 
 // GetSeasons returns all Seasons for a show
 // or errors with ErrNotFound, or ErrInternalServer
-func (squl *SqliteUserLibrary) GetSeasons(showID string) ([]*UserSeason, error) {
+func (squl *SqlUserLibrary) GetSeasons(showID string) ([]*UserSeason, error) {
 	useas := []*UserSeason{}
 	err := squl.db.Where("show_id = ?", showID).Find(&useas).Error
 	if err == gorm.ErrRecordNotFound {
@@ -170,7 +163,7 @@ func (squl *SqliteUserLibrary) GetSeasons(showID string) ([]*UserSeason, error) 
 
 // GetSeason returns a UserSeason given a UserShow's ID and a UserSeason number
 // or errors with ErrNotFound, ErrMissingShow, or ErrInternalServer
-func (squl *SqliteUserLibrary) GetSeason(showID string, seasonNumber int) (*UserSeason, error) {
+func (squl *SqlUserLibrary) GetSeason(showID string, seasonNumber int) (*UserSeason, error) {
 	useas := UserSeason{}
 	err := squl.db.Where(
 		"show_id = ? AND number = ?",
@@ -187,7 +180,7 @@ func (squl *SqliteUserLibrary) GetSeason(showID string, seasonNumber int) (*User
 
 // GetEpisodes returns all Shows for a show and season number
 // or errors with ErrNotFound, or ErrInternalServer
-func (squl *SqliteUserLibrary) GetEpisodes(showID string, seasonNumber int) ([]*UserEpisode, error) {
+func (squl *SqlUserLibrary) GetEpisodes(showID string, seasonNumber int) ([]*UserEpisode, error) {
 	useps := []*UserEpisode{}
 	err := squl.db.Where(
 		"show_id = ? AND season = ?",
@@ -205,7 +198,7 @@ func (squl *SqliteUserLibrary) GetEpisodes(showID string, seasonNumber int) ([]*
 // GetEpisode returns a UserEpisode  given a UserShow's ID a UserSeason number
 // and UserEpisode's number
 // or errors with ErrNotFound, ErrMissingShow, or ErrInternalServer
-func (squl *SqliteUserLibrary) GetEpisode(showID string, seasonNumber, episodeNumber int) (*UserEpisode, error) {
+func (squl *SqlUserLibrary) GetEpisode(showID string, seasonNumber, episodeNumber int) (*UserEpisode, error) {
 	usep := UserEpisode{}
 	err := squl.db.Where("show_id = ? AND season = ? AND number = ?",
 		showID, seasonNumber, episodeNumber,
@@ -222,9 +215,12 @@ func (squl *SqliteUserLibrary) GetEpisode(showID string, seasonNumber, episodeNu
 // QueryShowsByTitle returns all Shows that match a partial title ordered
 // by their probability
 // or errors with ErrInternalServer
-func (squl *SqliteUserLibrary) QueryShowsByTitle(title string) ([]*UserShow, error) {
+func (squl *SqlUserLibrary) QueryShowsByTitle(title string) ([]*UserShow, error) {
 	ushs := []*UserShow{}
-	err := squl.db.Where("title = ?", title).Find(&ushs).Error
+	err := squl.db.Where(
+		"title LIKE ?",
+		fmt.Sprintf("%%%s%%", title),
+	).Find(&ushs).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, ErrNotFound
 	}
@@ -235,7 +231,7 @@ func (squl *SqliteUserLibrary) QueryShowsByTitle(title string) ([]*UserShow, err
 }
 
 // QueryEpisodesForFinder
-func (squl *SqliteUserLibrary) QueryEpisodesForFinder() ([]*UserEpisode, error) {
+func (squl *SqlUserLibrary) QueryEpisodesForFinder() ([]*UserEpisode, error) {
 	usfs := []*UserFile{}
 	useps := []*UserEpisode{}
 	err := squl.db.Where(
@@ -268,7 +264,7 @@ func (squl *SqliteUserLibrary) QueryEpisodesForFinder() ([]*UserEpisode, error) 
 }
 
 // QueryEpisodesForDownloader
-func (squl *SqliteUserLibrary) QueryEpisodesForDownloader() ([]*UserEpisode, error) {
+func (squl *SqlUserLibrary) QueryEpisodesForDownloader() ([]*UserEpisode, error) {
 	usfs := []*UserFile{}
 	useps := []*UserEpisode{}
 	err := squl.db.Where(
@@ -300,7 +296,7 @@ func (squl *SqliteUserLibrary) QueryEpisodesForDownloader() ([]*UserEpisode, err
 	return useps, nil
 }
 
-func (squl *SqliteUserLibrary) upsertFiles(episode *UserEpisode) error {
+func (squl *SqlUserLibrary) upsertFiles(episode *UserEpisode) error {
 	squl.db.Where(
 		"show_id = ? AND season = ? AND episode = ?",
 		episode.ShowID, episode.Season, episode.Number,
@@ -318,7 +314,7 @@ func (squl *SqliteUserLibrary) upsertFiles(episode *UserEpisode) error {
 	return nil
 }
 
-func (squl *SqliteUserLibrary) Close() error {
+func (squl *SqlUserLibrary) Close() error {
 	err := squl.db.Close().Error
 	if err != nil {
 		return ErrInternalServer

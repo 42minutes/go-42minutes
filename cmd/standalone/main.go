@@ -3,7 +3,8 @@ package main
 import (
 	minutes "github.com/42minutes/go-42minutes"
 	trakt "github.com/42minutes/go-trakt"
-	"github.com/dancannon/gorethink"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/kataras/iris"
 	logging "github.com/op/go-logging"
 )
@@ -156,16 +157,17 @@ func main() {
 
 	// global ro trakt library
 	glib := minutes.NewTraktLibrary(trkt)
-	// rethinkdb session for user library
-	redb, _ := gorethink.Connect(gorethink.ConnectOpts{
-		Address:  "localhost",
-		Database: cfg.Rethink.Databases.Library,
-	})
+
+	// SQLite instance for UserLibrary
+	db, err := gorm.Open("sqlite3", "data.db")
+	if err != nil {
+		log.Fatal("Could not init SQLite")
+	}
 
 	// user rw library for single hardcoded user id
-	ulib, err := minutes.NewSqliteUserLibrary("data.db")
+	ulib, err := minutes.NewSqlUserLibrary(db)
 	if err != nil {
-		log.Fatal("Could not init SQLite", err)
+		log.Fatal("Could not init UserLibrary", err)
 	}
 	defer ulib.Close()
 
@@ -185,7 +187,7 @@ func main() {
 	wtch := &minutes.FileWatcher{}
 
 	// queue
-	qu, _ := minutes.NewQueue(redb, fndr, glib, ulib, dwnl)
+	qu, _ := minutes.NewQueue(db, fndr, glib, ulib, dwnl)
 
 	// standalone daemon
 	daem := &daemon{
