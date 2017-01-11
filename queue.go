@@ -69,12 +69,12 @@ func (q *Queue) Process() {
 			for _, it := range items {
 				ep, err := q.glibrary.GetEpisode(it.ShowID, it.Season, it.Number)
 				if err != nil {
-					log.Error(err)
+					log.Error("%v", err)
 				}
 
 				sh, err := q.glibrary.GetShow(it.ShowID)
 				if err != nil {
-					log.Error(err)
+					log.Error("%v", err)
 				}
 
 				down, err := q.finder.Find(sh, ep)

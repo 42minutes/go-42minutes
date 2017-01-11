@@ -3,9 +3,9 @@ package main
 import (
 	minutes "github.com/42minutes/go-42minutes"
 	trakt "github.com/42minutes/go-trakt"
+	gin "github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/kataras/iris"
 	logging "github.com/op/go-logging"
 )
 
@@ -212,15 +212,15 @@ func main() {
 	api := minutes.NewAPI(glib, ulib)
 
 	// start http server
-	app := iris.New()
-	app.Get("/shows", api.HandleShows)
-	app.Post("/shows", api.HandleShowPost)
-	app.Get("/shows/:show_id", api.HandleShow)
-	app.Get("/shows/:show_id/seasons", api.HandleSeasons)
-	app.Get("/shows/:show_id/seasons/:season", api.HandleSeason)
-	app.Get("/shows/:show_id/seasons/:season/episodes", api.HandleEpisodes)
-	app.Get("/shows/:show_id/seasons/:season/episodes/:episode", api.HandleEpisode)
-	go app.Listen(":8081") // TODO(geoah) Make port configurable
+	app := gin.Default()
+	app.GET("/shows", api.HandleShows)
+	app.POST("/shows", api.HandleShowPost)
+	app.GET("/shows/:show_id", api.HandleShow)
+	app.GET("/shows/:show_id/seasons", api.HandleSeasons)
+	app.GET("/shows/:show_id/seasons/:season", api.HandleSeason)
+	app.GET("/shows/:show_id/seasons/:season/episodes", api.HandleEpisodes)
+	app.GET("/shows/:show_id/seasons/:season/episodes/:episode", api.HandleEpisode)
+	go app.Run(":8081") // TODO(geoah) Make port configurable
 
 	// start shell
 	daem.startShell()

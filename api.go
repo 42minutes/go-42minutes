@@ -1,9 +1,10 @@
 package minutes
 
 import (
+	"net/http"
 	"strconv"
 
-	"github.com/kataras/iris"
+	gin "github.com/gin-gonic/gin"
 )
 
 // API -
@@ -21,52 +22,52 @@ func NewAPI(glib ShowLibrary, ulib UserLibrary) *API {
 }
 
 // HandleShows -
-func (api *API) HandleShows(ctx *iris.Context) {
-	qr := ctx.URLParam("title")
+func (api *API) HandleShows(ctx *gin.Context) {
+	qr := ctx.Param("title")
 	log.Debug("qr", qr)
 	if qr == "" {
 		ushs, err := api.ulibrary.GetShows()
 		if err != nil {
 			log.Error("Could not get ulib shows", err)
-			ctx.EmitError(iris.StatusInternalServerError)
+			ctx.String(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 		for i := 0; i < len(ushs); i++ {
 			gsh, err := api.glibrary.GetShow(ushs[i].ID)
 			if err != nil {
 				log.Error("Could not get glib show %s", ushs[i].ID)
-				ctx.EmitError(iris.StatusInternalServerError)
+				ctx.String(http.StatusInternalServerError, "Internal Server Error")
 				return
 			}
 			ushs[i].MergeInPlace(gsh)
 		}
-		ctx.JSON(iris.StatusOK, ushs)
+		ctx.JSON(http.StatusOK, ushs)
 		return
 	}
 
 	gshs, err := api.glibrary.QueryShowsByTitle(qr)
 	if err != nil {
-		ctx.EmitError(iris.StatusInternalServerError)
+		ctx.String(http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 	ushs := []*UserShow{}
 	for i := 0; i < len(gshs); i++ {
 		gsh, err := api.glibrary.GetShow(gshs[i].ID)
-		log.Info(gsh)
+		log.Info("%v", gsh)
 		if err != nil {
 			log.Error("Could not get glib show %s", ushs[i].ID)
-			ctx.EmitError(iris.StatusInternalServerError)
+			ctx.String(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 		ush := &UserShow{}
 		ush.MergeInPlace(gsh)
 		ushs = append(ushs, ush)
 	}
-	ctx.JSON(iris.StatusOK, ushs)
+	ctx.JSON(http.StatusOK, ushs)
 }
 
 // HandleShow -
-func (api *API) HandleShow(ctx *iris.Context) {
+func (api *API) HandleShow(ctx *gin.Context) {
 	sid := ctx.Param("show_id")
 	ush, _ := api.ulibrary.GetShow(sid)
 	// TODO(geoah) Handle error
@@ -76,7 +77,7 @@ func (api *API) HandleShow(ctx *iris.Context) {
 		// TODO(geoah) Handle error
 	}
 	ush.MergeInPlace(gsh)
-	ctx.JSON(iris.StatusOK, ush)
+	ctx.JSON(http.StatusOK, ush)
 }
 
 type reqShowPost struct {
@@ -84,17 +85,17 @@ type reqShowPost struct {
 }
 
 // HandleShowPost -
-func (api *API) HandleShowPost(ctx *iris.Context) {
+func (api *API) HandleShowPost(ctx *gin.Context) {
 	shr := &reqShowPost{}
-	if err := ctx.ReadJSON(shr); err != nil {
-		ctx.EmitError(iris.StatusBadRequest)
+	if ctx.BindJSON(&shr) == nil {
+		ctx.String(http.StatusBadRequest, "Bad Request")
 		return
 	}
 
 	ush, err := api.ulibrary.GetShow(shr.ID)
 	if err != nil {
 		if err != ErrNotFound {
-			ctx.EmitError(iris.StatusInternalServerError)
+			ctx.String(http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 	} else if ush != nil {
@@ -104,7 +105,7 @@ func (api *API) HandleShowPost(ctx *iris.Context) {
 			// TODO(geoah) Handle error
 		}
 		ush.MergeInPlace(gsh)
-		ctx.JSON(iris.StatusOK, ush)
+		ctx.JSON(http.StatusOK, ush)
 		return
 	}
 
@@ -112,22 +113,22 @@ func (api *API) HandleShowPost(ctx *iris.Context) {
 
 	gsh, err := api.glibrary.GetShow(shr.ID)
 	if err != nil {
-		ctx.EmitError(iris.StatusInternalServerError)
+		ctx.String(http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
 	ush.MergeInPlace(gsh)
 
 	if err := api.ulibrary.UpsertShow(ush); err != nil {
-		ctx.EmitError(iris.StatusInternalServerError)
+		ctx.String(http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
-	ctx.JSON(iris.StatusOK, ush)
+	ctx.JSON(http.StatusOK, ush)
 }
 
 // HandleSeasons -
-func (api *API) HandleSeasons(ctx *iris.Context) {
+func (api *API) HandleSeasons(ctx *gin.Context) {
 	sid := ctx.Param("show_id")
 	gses, err := api.glibrary.GetSeasons(sid)
 	if err != nil {
@@ -147,11 +148,11 @@ func (api *API) HandleSeasons(ctx *iris.Context) {
 		rse.MergeInPlace(gse)
 		rses = append(rses, rse)
 	}
-	ctx.JSON(iris.StatusOK, rses)
+	ctx.JSON(http.StatusOK, rses)
 }
 
 // HandleSeason -
-func (api *API) HandleSeason(ctx *iris.Context) {
+func (api *API) HandleSeason(ctx *gin.Context) {
 	sid := ctx.Param("show_id")
 	sen, _ := strconv.Atoi(ctx.Param("season"))
 	// TODO(geoah) Handle error
@@ -166,11 +167,11 @@ func (api *API) HandleSeason(ctx *iris.Context) {
 	} else if err != ErrNotFound {
 		rse.MergeInPlace(use)
 	}
-	ctx.JSON(iris.StatusOK, rse)
+	ctx.JSON(http.StatusOK, rse)
 }
 
 // HandleEpisodes -
-func (api *API) HandleEpisodes(ctx *iris.Context) {
+func (api *API) HandleEpisodes(ctx *gin.Context) {
 	sid := ctx.Param("show_id")
 	sen, _ := strconv.Atoi(ctx.Param("season"))
 	// TODO(geoah) Handle error
@@ -192,11 +193,11 @@ func (api *API) HandleEpisodes(ctx *iris.Context) {
 		rep.MergeInPlace(gep)
 		reps = append(reps, rep)
 	}
-	ctx.JSON(iris.StatusOK, reps)
+	ctx.JSON(http.StatusOK, reps)
 }
 
 // HandleEpisode -
-func (api *API) HandleEpisode(ctx *iris.Context) {
+func (api *API) HandleEpisode(ctx *gin.Context) {
 	sid := ctx.Param("show_id")
 	sen, _ := strconv.Atoi(ctx.Param("season"))
 	// TODO(geoah) Handle error
@@ -213,5 +214,5 @@ func (api *API) HandleEpisode(ctx *iris.Context) {
 		rep = uep
 	}
 	rep.MergeInPlace(gep)
-	ctx.JSON(iris.StatusOK, rep)
+	ctx.JSON(http.StatusOK, rep)
 }

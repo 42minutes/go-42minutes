@@ -144,7 +144,7 @@ func (l *RethinkUserLibrary) GetEpisode(sid string, sn, en int) (*UserEpisode, e
 	qr := rethink.Table(tableEpisodes).Get([]interface{}{sid, sn, en})
 	res, err := qr.Run(l.rethinkdb)
 	if err != nil {
-		log.Info(err)
+		log.Info("%v", err)
 		return nil, ErrInternalServer
 	}
 	defer res.Close()
