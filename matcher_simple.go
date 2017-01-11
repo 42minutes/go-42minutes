@@ -63,7 +63,7 @@ type matchedEpisode struct {
 // Match returns all episodes that match a filename or full path,
 // ordered by their probability
 // or errors with ErrInternalServer
-func (m *SimpleMatch) Match(fp string) (eps []*Episode, err error) {
+func (m *SimpleMatch) Match(fp string) (eps []*UserEpisode, err error) {
 	// TODO(geoah) This needs a complete rewrite at some point but for now should be ok
 	fp = strings.ToLower(fp)
 	ps := strings.Split(fp, "/") // TODO(geoah) get os seperator
@@ -141,6 +141,10 @@ func (m *SimpleMatch) Match(fp string) (eps []*Episode, err error) {
 		return
 	}
 
+	uf, _ := m.parseMetadata(fn)
+	uf.Name = fn
+	uf.Path = ds
+
 	clsh := strings.Replace(me.Show, ".", " ", -1)
 	shs, err := m.globalLibrary.QueryShowsByTitle(clsh)
 	if err != nil {
@@ -154,13 +158,14 @@ func (m *SimpleMatch) Match(fp string) (eps []*Episode, err error) {
 	}
 	epn, _ := strconv.Atoi(me.Episode)
 	sen, _ := strconv.Atoi(me.Season)
-	ep := &Episode{
+	ep := &UserEpisode{
 		ShowID: fmt.Sprintf("%d", shs[0].IDs.Trakt),
 		Season: sen,
 		Number: epn,
+		Files:  []*UserFile{uf},
 	}
 	log.Infof("> Got match '%s' S%02dE%02d from file '%s'", me.Show, epn, sen, fp)
-	eps = []*Episode{ep}
+	eps = []*UserEpisode{ep}
 
 	return
 }
@@ -175,6 +180,42 @@ func (m *SimpleMatch) match(rxs []*regexp.Regexp, fn string) *matchedEpisode {
 		}
 	}
 	return nil
+}
+
+func (m *SimpleMatch) parseMetadata(filename string) (*UserFile, error) {
+	uf := &UserFile{
+		Name: filename,
+	}
+
+	// parse video codec
+	for _, m := range fileVideoCodecs {
+		if strings.Contains(filename, m) {
+			uf.VideoCodec = m
+			break
+		}
+	}
+
+	// parse audio codec
+	for _, m := range fileAudioCodecs {
+		if strings.Contains(filename, m) {
+			uf.AudioCodec = m
+			break
+		}
+	}
+
+	// parse source
+	for _, m := range fileSources {
+		if strings.Contains(filename, m) {
+			uf.Source = m
+			break
+		}
+	}
+
+	// TODO parse group
+	// TODO parse crc32
+	// TODO parse resolution
+
+	return uf, nil
 }
 
 func (m *SimpleMatch) parseMatches(rx *regexp.Regexp, ms [][]string) *matchedEpisode {
