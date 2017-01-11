@@ -9,61 +9,61 @@ import (
 // UserShow struct
 type UserShow struct {
 	ID            string `json:"id" gorethink:"id" gorm:"primary_key"`
-	AiredEpisodes int    `json:"aired_episodes" gorethink:"-" gorm:"-"`
+	AiredEpisodes int    `json:"aired_episodes" gorethink:"-" sql:"-"`
 	Airs          struct {
-		Day      string `json:"day" gorethink:"-" gorm:"-"`
-		Time     string `json:"time" gorethink:"-" gorm:"-"`
-		Timezone string `json:"timezone" gorethink:"-" gorm:"-"`
-	} `json:"airs" gorethink:"-" gorm:"-"`
-	AvailableTranslations []string `json:"-" gorethink:"-" gorm:"-"`
-	Certification         string   `json:"-" gorethink:"-" gorm:"-"`
-	Country               string   `json:"country" gorethink:"-" gorm:"-"`
-	FirstAired            string   `json:"first_aired" gorethink:"-" gorm:"-"`
-	Genres                []string `json:"genres" gorethink:"-" gorm:"-"`
-	Homepage              string   `json:"-" gorethink:"-" gorm:"-"`
+		Day      string `json:"day" gorethink:"-" sql:"-"`
+		Time     string `json:"time" gorethink:"-" sql:"-"`
+		Timezone string `json:"timezone" gorethink:"-" sql:"-"`
+	} `json:"airs" gorethink:"-" sql:"-"`
+	AvailableTranslations []string `json:"-" gorethink:"-" sql:"-"`
+	Certification         string   `json:"-" gorethink:"-" sql:"-"`
+	Country               string   `json:"country" gorethink:"-" sql:"-"`
+	FirstAired            string   `json:"first_aired" gorethink:"-" sql:"-"`
+	Genres                []string `json:"genres" gorethink:"-" sql:"-"`
+	Homepage              string   `json:"-" gorethink:"-" sql:"-"`
 	IDs                   struct {
-		Imdb   string `json:"imdb" gorethink:"-" gorm:"-"`
-		Slug   string `json:"slug" gorethink:"-" gorm:"-"`
-		Tmdb   int    `json:"tmdb" gorethink:"-" gorm:"-"`
-		Trakt  int    `json:"trakt" gorethink:"-" gorm:"-"`
-		Tvdb   int    `json:"tvdb" gorethink:"-" gorm:"-"`
-		Tvrage int    `json:"tvrage" gorethink:"-" gorm:"-"`
-	} `json:"ids" gorethink:"-" gorm:"-"`
+		Imdb   string `json:"imdb" gorethink:"-" sql:"-"`
+		Slug   string `json:"slug" gorethink:"-" sql:"-"`
+		Tmdb   int    `json:"tmdb" gorethink:"-" sql:"-"`
+		Trakt  int    `json:"trakt" gorethink:"-" sql:"-"`
+		Tvdb   int    `json:"tvdb" gorethink:"-" sql:"-"`
+		Tvrage int    `json:"tvrage" gorethink:"-" sql:"-"`
+	} `json:"ids" gorethink:"-" sql:"-"`
 	Images struct {
 		Banner struct {
-			Full string `json:"full" gorethink:"-" gorm:"-"`
-		} `json:"banner" gorethink:"-" gorm:"-"`
+			Full string `json:"full" gorethink:"-" sql:"-"`
+		} `json:"banner" gorethink:"-" sql:"-"`
 		Clearart struct {
-			Full string `json:"full" gorethink:"-" gorm:"-"`
-		} `json:"clearart" gorethink:"-" gorm:"-"`
+			Full string `json:"full" gorethink:"-" sql:"-"`
+		} `json:"clearart" gorethink:"-" sql:"-"`
 		Fanart struct {
-			Full   string `json:"full" gorethink:"-" gorm:"-"`
-			Medium string `json:"medium" gorethink:"-" gorm:"-"`
-			Thumb  string `json:"thumb" gorethink:"-" gorm:"-"`
-		} `json:"fanart" gorethink:"-" gorm:"-"`
+			Full   string `json:"full" gorethink:"-" sql:"-"`
+			Medium string `json:"medium" gorethink:"-" sql:"-"`
+			Thumb  string `json:"thumb" gorethink:"-" sql:"-"`
+		} `json:"fanart" gorethink:"-" sql:"-"`
 		Logo struct {
-			Full string `json:"full" gorethink:"-" gorm:"-"`
-		} `json:"logo" gorethink:"-" gorm:"-"`
+			Full string `json:"full" gorethink:"-" sql:"-"`
+		} `json:"logo" gorethink:"-" sql:"-"`
 		Poster struct {
-			Full   string `json:"full" gorethink:"-" gorm:"-"`
-			Medium string `json:"medium" gorethink:"-" gorm:"-"`
-			Thumb  string `json:"thumb" gorethink:"-" gorm:"-"`
-		} `json:"poster" gorethink:"-" gorm:"-"`
+			Full   string `json:"full" gorethink:"-" sql:"-"`
+			Medium string `json:"medium" gorethink:"-" sql:"-"`
+			Thumb  string `json:"thumb" gorethink:"-" sql:"-"`
+		} `json:"poster" gorethink:"-" sql:"-"`
 		Thumb struct {
-			Full string `json:"full" gorethink:"-" gorm:"-"`
-		} `json:"thumb" gorethink:"-" gorm:"-"`
-	} `json:"images" gorethink:"-" gorm:"-"`
-	Language  string  `json:"language" gorethink:"-" gorm:"-"`
-	Network   string  `json:"network" gorethink:"-" gorm:"-"`
-	Overview  string  `json:"overview" gorethink:"-" gorm:"-"`
-	Rating    float64 `json:"rating" gorethink:"-" gorm:"-"`
-	Runtime   float64 `json:"runtime" gorethink:"-" gorm:"-"`
-	Status    string  `json:"status" gorethink:"-" gorm:"-"`
+			Full string `json:"full" gorethink:"-" sql:"-"`
+		} `json:"thumb" gorethink:"-" sql:"-"`
+	} `json:"images" gorethink:"-" sql:"-"`
+	Language  string  `json:"language" gorethink:"-" sql:"-"`
+	Network   string  `json:"network" gorethink:"-" sql:"-"`
+	Overview  string  `json:"overview" gorethink:"-" sql:"-"`
+	Rating    float64 `json:"rating" gorethink:"-" sql:"-"`
+	Runtime   float64 `json:"runtime" gorethink:"-" sql:"-"`
+	Status    string  `json:"status" gorethink:"-" sql:"-"`
 	Title     string  `json:"title" gorethink:"title,omitempty"`
-	Trailer   string  `json:"-" gorethink:"-" gorm:"-"`
+	Trailer   string  `json:"-" gorethink:"-" sql:"-"`
 	UpdatedAt string  `json:"-" gorethink:"-" `
-	Votes     int     `json:"-" gorethink:"-" gorm:"-"`
-	Year      int     `json:"year" gorethink:"-" gorm:"-"`
+	Votes     int     `json:"-" gorethink:"-" sql:"-"`
+	Year      int     `json:"year" gorethink:"-" sql:"-"`
 }
 
 // MergeInPlace -
@@ -81,29 +81,29 @@ func (sh *UserShow) GetCID() interface{} {
 type UserSeason struct {
 	ID           uint   `json:"id" gorm:"primary_key"`
 	ShowID       string `json:"show_id" gorethink:"show_id"`
-	EpisodeCount int    `json:"episode_count" gorethink:"-" gorm:"-"`
+	EpisodeCount int    `json:"episode_count" gorethink:"-" sql:"-"`
 	IDs          struct {
-		Tmdb   int `json:"tmdb" gorethink:"-" gorm:"-"`
-		Trakt  int `json:"trakt" gorethink:"-" gorm:"-"`
-		Tvdb   int `json:"tvdb" gorethink:"-" gorm:"-"`
-		Tvrage int `json:"tvrage" gorethink:"-" gorm:"-"`
-	} `json:"ids" gorethink:"-" gorm:"-"`
+		Tmdb   int `json:"tmdb" gorethink:"-" sql:"-"`
+		Trakt  int `json:"trakt" gorethink:"-" sql:"-"`
+		Tvdb   int `json:"tvdb" gorethink:"-" sql:"-"`
+		Tvrage int `json:"tvrage" gorethink:"-" sql:"-"`
+	} `json:"ids" gorethink:"-" sql:"-"`
 	Images struct {
 		Poster struct {
-			Full   string `json:"full" gorethink:"-" gorm:"-"`
-			Medium string `json:"medium" gorethink:"-" gorm:"-"`
-			Thumb  string `json:"thumb" gorethink:"-" gorm:"-"`
-		} `json:"poster" gorethink:"-" gorm:"-"`
+			Full   string `json:"full" gorethink:"-" sql:"-"`
+			Medium string `json:"medium" gorethink:"-" sql:"-"`
+			Thumb  string `json:"thumb" gorethink:"-" sql:"-"`
+		} `json:"poster" gorethink:"-" sql:"-"`
 		Thumb struct {
-			Full string `json:"full" gorethink:"-" gorm:"-"`
-		} `json:"thumb" gorethink:"-" gorm:"-"`
-	} `json:"images" gorethink:"-" gorm:"-"`
+			Full string `json:"full" gorethink:"-" sql:"-"`
+		} `json:"thumb" gorethink:"-" sql:"-"`
+	} `json:"images" gorethink:"-" sql:"-"`
 	Number   int     `json:"number" gorethink:"number"`
-	Overview string  `json:"overview" gorethink:"-" gorm:"-"`
-	Rating   float64 `json:"rating" gorethink:"-" gorm:"-"`
-	Votes    int     `json:"votes" gorethink:"-" gorm:"-"`
+	Overview string  `json:"overview" gorethink:"-" sql:"-"`
+	Rating   float64 `json:"rating" gorethink:"-" sql:"-"`
+	Votes    int     `json:"votes" gorethink:"-" sql:"-"`
 
-	CID []interface{} `json:"-" gorethink:"id" gorm:"-"`
+	CID []interface{} `json:"-" gorethink:"id" sql:"-"`
 }
 
 // MergeInPlace -
@@ -124,32 +124,32 @@ func (se *UserSeason) GetCID() []interface{} {
 type UserEpisode struct {
 	ID                    uint       `json:"id" gorm:"primary_key"`
 	ShowID                string     `json:"show_id" gorethink:"show_id"`
-	AvailableTranslations []string   `json:"-" gorethink:"-" gorm:"-"`
-	FirstAired            *time.Time `json:"first_aired" gorethink:"-" gorm:"-"`
+	AvailableTranslations []string   `json:"-" gorethink:"-" sql:"-"`
+	FirstAired            *time.Time `json:"first_aired" gorethink:"-" sql:"-"`
 	IDs                   struct {
-		Imdb   string `json:"imdb" gorethink:"-" gorm:"-"`
-		Tmdb   int    `json:"tmdb" gorethink:"-" gorm:"-"`
-		Trakt  int    `json:"trakt" gorethink:"-" gorm:"-"`
-		Tvdb   int    `json:"tvdb" gorethink:"-" gorm:"-"`
-		Tvrage int    `json:"tvrage" gorethink:"-" gorm:"-"`
-	} `json:"ids" gorethink:"-" gorm:"-"`
+		Imdb   string `json:"imdb" gorethink:"-" sql:"-"`
+		Tmdb   int    `json:"tmdb" gorethink:"-" sql:"-"`
+		Trakt  int    `json:"trakt" gorethink:"-" sql:"-"`
+		Tvdb   int    `json:"tvdb" gorethink:"-" sql:"-"`
+		Tvrage int    `json:"tvrage" gorethink:"-" sql:"-"`
+	} `json:"ids" gorethink:"-" sql:"-"`
 	Images struct {
 		Screenshot struct {
-			Full   string `json:"full" gorethink:"-" gorm:"-"`
-			Medium string `json:"medium" gorethink:"-" gorm:"-"`
-			Thumb  string `json:"thumb" gorethink:"-" gorm:"-"`
-		} `json:"screenshot" gorethink:"-" gorm:"-"`
-	} `json:"images" gorethink:"-" gorm:"-"`
+			Full   string `json:"full" gorethink:"-" sql:"-"`
+			Medium string `json:"medium" gorethink:"-" sql:"-"`
+			Thumb  string `json:"thumb" gorethink:"-" sql:"-"`
+		} `json:"screenshot" gorethink:"-" sql:"-"`
+	} `json:"images" gorethink:"-" sql:"-"`
 	Number    int     `json:"number" gorethink:"number,omitempty"`
-	Overview  string  `json:"overview" gorethink:"-" gorm:"-"`
-	Rating    float64 `json:"-" gorethink:"-" gorm:"-"`
+	Overview  string  `json:"overview" gorethink:"-" sql:"-"`
+	Rating    float64 `json:"-" gorethink:"-" sql:"-"`
 	Season    int     `json:"season" gorethink:"season,omitempty"`
 	Title     string  `json:"title" gorethink:"title,omitempty"`
 	UpdatedAt string  `json:"updated_at" gorethink:"-" `
-	Votes     int     `json:"-" gorethink:"-" gorm:"-"`
+	Votes     int     `json:"-" gorethink:"-" sql:"-"`
 
-	CID   []interface{} `json:"-" gorethink:"id" gorm:"-"`
-	Files []*UserFile   `json:"files" gorethink:"files" gorm:"-"`
+	CID   []interface{} `json:"-" gorethink:"id" sql:"-"`
+	Files []*UserFile   `json:"files" gorethink:"files" sql:"-"`
 }
 
 // UserFile -
