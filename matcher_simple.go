@@ -3,6 +3,7 @@ package minutes
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -60,18 +61,18 @@ type matchedEpisode struct {
 	SecondEpisode string
 }
 
-// Match returns all episodes that match a filename or full path,
+// Match returns all episodes that match a lfn or full path,
 // ordered by their probability
 // or errors with ErrInternalServer
-func (m *SimpleMatch) Match(fp string) (eps []*Episode, err error) {
+func (m *SimpleMatch) Match(fp string) (eps []*UserEpisode, err error) {
 	// TODO(geoah) This needs a complete rewrite at some point but for now should be ok
-	fp = strings.ToLower(fp)
-	ps := strings.Split(fp, "/") // TODO(geoah) get os seperator
-	fn := ps[len(ps)-1]
-	ds := ps[:len(ps)-1]
+
+	ods, ofn := filepath.Split(fp)
+	fn := strings.ToLower(ofn)
+	ds := filepath.SplitList(strings.ToLower(ofn))
 	me := &matchedEpisode{}
 
-	// try to match standalone episodes from the filename
+	// try to match standalone episodes from the lfn
 	// from this, at the very least we should get season and episode
 	if mer := m.match(matcherStandaloneEpisodeRegexs, fn); mer != nil {
 		me.Show = mer.Show
@@ -141,6 +142,10 @@ func (m *SimpleMatch) Match(fp string) (eps []*Episode, err error) {
 		return
 	}
 
+	uf, _ := m.parseMetadata(ofn)
+	uf.Name = ofn
+	uf.Path = ods
+
 	clsh := strings.Replace(me.Show, ".", " ", -1)
 	shs, err := m.globalLibrary.QueryShowsByTitle(clsh)
 	if err != nil {
@@ -154,13 +159,14 @@ func (m *SimpleMatch) Match(fp string) (eps []*Episode, err error) {
 	}
 	epn, _ := strconv.Atoi(me.Episode)
 	sen, _ := strconv.Atoi(me.Season)
-	ep := &Episode{
+	ep := &UserEpisode{
 		ShowID: fmt.Sprintf("%d", shs[0].IDs.Trakt),
 		Season: sen,
 		Number: epn,
+		Files:  []*UserFile{uf},
 	}
-	log.Infof("> Got match '%s' S%02dE%02d from file '%s'", me.Show, epn, sen, fp)
-	eps = []*Episode{ep}
+	log.Infof("> Got match '%s' S%02dE%02d from file '%s'", me.Show, sen, epn, fp)
+	eps = []*UserEpisode{ep}
 
 	return
 }
@@ -175,6 +181,62 @@ func (m *SimpleMatch) match(rxs []*regexp.Regexp, fn string) *matchedEpisode {
 		}
 	}
 	return nil
+}
+
+func (m *SimpleMatch) parseMetadata(filename string) (*UserFile, error) {
+	uf := &UserFile{
+		Name: filename,
+	}
+
+	lfn := strings.ToLower(filename)
+
+	// parse video codec
+	for _, m := range fileVideoCodecs {
+		if strings.Contains(lfn, m) {
+			uf.VideoCodec = m
+			break
+		}
+	}
+
+	// parse audio codec
+	for _, m := range fileAudioCodecs {
+		if strings.Contains(lfn, m) {
+			uf.AudioCodec = m
+			break
+		}
+	}
+
+	// parse source
+	for _, m := range fileSources {
+		if strings.Contains(lfn, m) {
+			uf.Source = m
+			break
+		}
+	}
+
+	// parse resolution
+	for _, m := range fileResolutions {
+		if strings.Contains(lfn, m) {
+			uf.Resolution = m
+			break
+		}
+	}
+
+	// parse group
+	for _, m := range fileReleaseGroups {
+		g := "-" + m
+		// TODO should this really be case sensitive?
+		if strings.Contains(filename, g) {
+			uf.ReleaseGroup = m
+			break
+		}
+	}
+
+	// TODO parse crc32
+
+	log.Info("Parsing metadata %+v", uf)
+
+	return uf, nil
 }
 
 func (m *SimpleMatch) parseMatches(rx *regexp.Regexp, ms [][]string) *matchedEpisode {

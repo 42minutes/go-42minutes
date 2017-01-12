@@ -99,17 +99,14 @@ func (d *daemon) HandleWatcherNotification(notifType minutes.NotificationType, p
 
 	for _, ufile := range uep.Files {
 		// TODO(geoah) Check CRC32
-		// TODO(geoah) Split path
 		if ufile.Name == path {
 			log.Info("Episode already exists in user's library")
 			return
 		}
 	}
 
-	file := &minutes.UserFile{
-		Name:   path,
-		Status: "ok",
-	}
+	file := ep.Files[0]
+	file.Status = "ok"
 	uep.Files = append(uep.Files, file)
 
 	if err := d.ulibrary.UpsertEpisode(uep); err != nil {
