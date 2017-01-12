@@ -41,6 +41,7 @@ var (
 		"h264",
 		"xvid",
 		"divx",
+		"x264",
 	}
 
 	fileAudioCodecs = []string{
@@ -52,6 +53,13 @@ var (
 		"dd5.1",
 		"aac",
 		"mp3",
+	}
+
+	fileReleaseGroups = []string{
+		"ASAP",
+		"LOL",
+		"2HD",
+		"KILLERS",
 	}
 )
 

@@ -178,7 +178,7 @@ func (squl *SqlUserLibrary) GetSeason(showID string, seasonNumber int) (*UserSea
 	return &useas, nil
 }
 
-// GetEpisodes returns all Shows for a show and season number
+// GetEpisodes returns all Episodes for a show and season number
 // or errors with ErrNotFound, or ErrInternalServer
 func (squl *SqlUserLibrary) GetEpisodes(showID string, seasonNumber int) ([]*UserEpisode, error) {
 	useps := []*UserEpisode{}
@@ -191,6 +191,15 @@ func (squl *SqlUserLibrary) GetEpisodes(showID string, seasonNumber int) ([]*Use
 	}
 	if err != nil {
 		return nil, ErrInternalServer
+	}
+	for i, usep := range useps {
+		fis, err := squl.GetFiles(usep.ShowID, usep.Season, usep.Number)
+		if err != nil { // TODO Handle error
+			continue
+		}
+		if fis != nil {
+			useps[i].Files = fis
+		}
 	}
 	return useps, nil
 }
@@ -209,7 +218,23 @@ func (squl *SqlUserLibrary) GetEpisode(showID string, seasonNumber, episodeNumbe
 	if err != nil {
 		return nil, ErrInternalServer
 	}
+	fis, err := squl.GetFiles(usep.ShowID, usep.Season, usep.Number)
+	if err == nil && fis != nil { // TODO Handle error
+		usep.Files = fis
+	}
 	return &usep, nil
+}
+
+// GetFiles returns all UserFiles given a ShowID, Season, and Episode
+func (squl *SqlUserLibrary) GetFiles(showID string, seasonNumber, episodeNumber int) ([]*UserFile, error) {
+	usfis := []*UserFile{}
+	err := squl.db.Where("show_id = ? AND season = ? AND episode = ?",
+		showID, seasonNumber, episodeNumber,
+	).Find(&usfis).Error
+	if err != nil {
+		return nil, ErrInternalServer
+	}
+	return usfis, nil
 }
 
 // QueryShowsByTitle returns all Shows that match a partial title ordered
